@@ -1,5 +1,5 @@
 {
-  "speed": 0.5,
+  "speed": 1,
   "map_time": 900,
   "work_button_confidence": 0.9,
   "server_lagged": false,

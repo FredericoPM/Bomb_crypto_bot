@@ -24,7 +24,7 @@ class Bot:
                 self._data = json.load(read_file)
         except Exception as e:
             with open(config_file, "w") as write_file:
-                json.dump(self.self._data, write_file,indent=2)
+                json.dump(self._data, write_file,indent=2)
 
         self._minimum_time *= (1/self._data['speed'])
         self._small_time *= (1/self._data['speed'])
@@ -39,7 +39,7 @@ class Bot:
             pyautogui.keyUp('shift')
             pyautogui.keyUp('ctrl')
         else:
-            self.self.find_and_click('./images/reload-button.png')
+            self.find_and_click('./images/reload-button.png', confidance = 0.75)
         time.sleep(self._small_time)
 
     def await_and_click(self, image, await_time, confidance = 0.9):
