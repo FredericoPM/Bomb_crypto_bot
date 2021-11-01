@@ -11,16 +11,7 @@ Windows:
 Linux:
 	Instalando o bot:
 		sudo apt-get update
-		sudo apt install make
-		sudo apt-get install gcc g++
-		sudo apt install zlib1g-dev
 		sudo apt-get install scrot
-		wget https://www.python.org/ftp/python/3.8.2/Python-3.8.2.tgz
-		tar -xf Python-3.8.2.tgz
-		cd Python-3.8.2
-		./configure --enable-optimizations
-		make -j 8
-		sudo make altinstall
 		sudo apt-get install python3-tk python3-dev
 		sudo apt install python3-pip
 		python3 -m pip install pyautogui
