@@ -147,12 +147,12 @@ class Bot:
             print(e)
 
         try:
-            self.await_and_click("./images/heroes-menu-button.png", 30)
+            self.await_and_click("./images/heroes-menu-button.png", self._big_time)
         except:
             raise ValueError("heroes-menu-button.png not found")
         
         try:
-            self.await_for_image("./images/hero-selection-drag-bar.png", 30)
+            self.await_for_image("./images/hero-selection-drag-bar.png", self._big_time)
             for i in range(0,4):
                 self.scroll_down()
         except Exception as e:
@@ -224,6 +224,5 @@ class Bot:
                 self.await_for_image("./images/connect-wallet-button.png", self._big_time)
                 self.try_to_login()
                 estado = 1
-    
-bot = Bot()
-bot.run()
+
+Bot().run()
