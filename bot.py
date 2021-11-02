@@ -32,15 +32,11 @@ class Bot:
         self._big_time *= (1/self._data['speed'])
 
     def refresh(self):
-        if(self._data['plataform'] != 'aws'):
-            pyautogui.keyDown('ctrl')
-            pyautogui.keyDown('shift')
-            pyautogui.press('r')
-            pyautogui.keyUp('shift')
-            pyautogui.keyUp('ctrl')
-        else:
-            self.find_and_click('./images/reload-button.png', confidance = 0.75)
-        time.sleep(self._small_time)
+        pyautogui.keyDown('ctrl')
+        pyautogui.keyDown('shift')
+        pyautogui.press('r')
+        pyautogui.keyUp('shift')
+        pyautogui.keyUp('ctrl')
 
     def await_and_click(self, image, await_time, confidance = 0.9):
         await_time = int(await_time)
@@ -112,7 +108,7 @@ class Bot:
             try:
                 self.await_and_click("./images/connect-wallet-button.png", await_time = 10+self._medium_time)
                 self.await_and_click("./images/metamask-fox.png", await_time = 10+self._medium_time)
-                if(self._data['plataform'] == 'Linux' or self._data['plataform'] == 'aws'):
+                if(self._data['plataform'].lower() == 'linux'):
                     self.await_and_click("./images/sing-button-linux.png", await_time = 10+self._medium_time)
                 else:
                     self.await_and_click("./images/sing-button-windows.png", await_time = 10+self._medium_time)
