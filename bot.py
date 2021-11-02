@@ -71,18 +71,6 @@ class Bot:
         time.sleep(self._small_time)
         raise ValueError("Image " + image + " not founded")
 
-    def find_and_click(self, image, confidance = 0.9):
-        print("Trying to click on: " + image)
-        try:
-            x1, y1 = pyautogui.center(pyautogui.locateOnScreen(image, confidence = confidance))
-            time.sleep(self._minimum_time)
-            pyautogui.click(x1, y1)
-            print("Image founded and clicked")
-            return True
-        except:
-            time.sleep(self._small_time)
-            raise ValueError("Image " + image + " not founded")
-
     def is_image_present(self, image, confidance = 0.9):
         try:
             founded = pyautogui.center(pyautogui.locateOnScreen(image, confidence = confidance))
@@ -157,7 +145,7 @@ class Bot:
                 pyautogui.click(x1, y1)
                 time.sleep(self._small_time)
                 if(not self.is_image_present('./images/work-button.png', confidance=0.5)):
-                    self.find_and_click("./images/close-button.png")
+                    self.await_and_click("./images/close-button.png", self._medium_time)
                     time.sleep(self._small_time)
                 elif(not self.is_image_present('./images/work-button.png')):
                     break
