@@ -5,12 +5,14 @@ import keyboard
 
 class Config_AWS:
     #TODO: alterar tecla
-    _key_await = 'shift'
+    _key_await = '0'
 
     def _write_command_and_await_for_key(self, command, key):
         pyautogui.write(command, interval=.1)
         pyautogui.press('enter')
         keyboard.wait(key)
+        time.sleep(.1)
+        keyboard.press('backspace')
         time.sleep(1)
 
     def _write_and_enter(self, line):
@@ -22,6 +24,8 @@ class Config_AWS:
     def install_ubunto_vncserver(self):
         print('Next comand: "sudo apt update"')
         keyboard.wait(self._key_await)
+        time.sleep(.1)
+        keyboard.press('backspace')
         time.sleep(1)
         print('Next comand: "sudo apt install xubuntu-desktop"')
         self._write_command_and_await_for_key('sudo apt update', self._key_await)
@@ -37,6 +41,8 @@ class Config_AWS:
     def conf_xstartup(self):
         print('Press ' + self._key_await + ' to start')
         keyboard.wait(self._key_await)
+        time.sleep(.1)
+        keyboard.press('backspace')
         time.sleep(1)
         self._write_and_enter('#\!/bin/sh')
         pyautogui.press('enter')
@@ -58,25 +64,31 @@ class Config_AWS:
         print("Pres 'Esc' then ':' then type 'wq' and press enter" )
         print("Afether that press '" + self._key_await + "' to continue")
         keyboard.wait(self._key_await)
+        time.sleep(.1)
+        keyboard.press('backspace')
         time.sleep(1)
         self._write_command_and_await_for_key('vncserver -kill :1', self._key_await)
         pyautogui.write('vncserver :1', interval=.1)
         pyautogui.press('enter')
 
     def install_libraries_and_chrome(self):
-        print('Next comand: "wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"')
+        print('Next comand: "sudo apt-get update"')
         keyboard.wait(self._key_await)
+        time.sleep(.1)
+        keyboard.press('backspace')
         time.sleep(1)
+        print('Next comand: "wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"')
+        self._write_command_and_await_for_key('sudo apt-get update', self._key_await)
         print('Next comand: "sudo apt install ./google-chrome-stable_current_amd64.deb"')
         self._write_command_and_await_for_key('wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb', self._key_await)
-        print('Next comand: "sudo apt-get update"')
-        self._write_command_and_await_for_key('sudo apt install ./google-chrome-stable_current_amd64.deb', self._key_await)
         print('Next comand: "sudo apt install python3.8"')
-        self._write_command_and_await_for_key('sudo apt-get update', self._key_await)
+        self._write_command_and_await_for_key('sudo apt install ./google-chrome-stable_current_amd64.deb', self._key_await)
         print('Next comand: "sudo apt-get install python3-tk python3-dev"')
         self._write_command_and_await_for_key('sudo apt install python3.8', self._key_await)
-        print('Next comand: "sudo apt install python3-pip"')
+        print('Next comand: "sudo apt-get install scrot"')
         self._write_command_and_await_for_key('sudo apt-get install python3-tk python3-dev', self._key_await)
+        print('Next comand: "sudo apt install python3-pip"')
+        self._write_command_and_await_for_key('sudo apt-get install scrot', self._key_await)
         print('Next comand: "python3 -m pip install pyautogui"')
         self._write_command_and_await_for_key('sudo apt install python3-pip', self._key_await)
         print('Next comand: "python3 -m pip install opencv-python"')
