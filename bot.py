@@ -93,7 +93,7 @@ class Bot:
     def try_to_login(self):
         i = 1
         print("Trying to log in")
-        pyautogui.dragTo(10, 10)
+        pyautogui.dragTo(100, 100)
         while(not self.is_image_present("./images/start-pve-button.png")):
             try:
                 self.await_and_click("./images/connect-wallet-button.png", await_time = 3*self._medium_time)
@@ -122,7 +122,8 @@ class Bot:
                         time.sleep(self._small_time)
                         pyautogui.click(x, y)
                         time.sleep(self._small_time)
-                    except:
+                    except Exception as e:
+                        print(e)
                         raise ValueError("Unable to click on sign button") from None
 
             try:
@@ -144,6 +145,7 @@ class Bot:
             pyautogui.dragTo(x1, y1-200, self._minimum_time, button='left')
             return True
         except Exception as e:
+            print(e)
             raise ValueError("Unable to drag down") from None
 
     def put_heroes_to_work(self):
@@ -154,12 +156,14 @@ class Bot:
                 self.await_and_click("./images/back-to-menu-button.png", self._big_time)
             elif(self.is_image_present("./images/close-button.png")):
                 self.await_and_click("./images/close-button.png", self._big_time)
-        except:
+        except Exception as e:
+            print(e)
             raise ValueError("Unable to go back to menu") from None
         time.sleep(self._small_time)
         try:
             self.await_and_click("./images/heroes-menu-button.png", self._big_time)
-        except:
+        except Exception as e:
+            print(e)
             raise ValueError("heroes-menu-button.png not found") from None
         
         try:
@@ -185,7 +189,8 @@ class Bot:
         try:
             self.await_and_click("./images/close-button.png", 10)
             self.await_and_click("./images/start-pve-button.png", 10)
-        except:
+        except Exception as e:
+            print(e)
             raise ValueError("Erro whyle going back to pve") from None
 
     def await_for_new_map(self, await_time):
@@ -193,7 +198,7 @@ class Bot:
         await_time = int(await_time/(self._small_time*2))
         for i in range(0, await_time):
             if(self.is_image_present('./images/ok-button.png')):
-                raise ValueError("Lost connection") from None
+                raise ValueError("Lost connection")
             try:
                 x1, y1 = pyautogui.center(pyautogui.locateOnScreen("./images/new-map-button.png", confidence = 0.9))
                 pyautogui.click(x1, y1)
