@@ -87,20 +87,33 @@ class Bot:
                 self.await_and_click("./images/connect-wallet-button.png", await_time = 10+self._medium_time)
                 time.sleep(self._small_time)
                 self.await_and_click("./images/metamask-fox.png", await_time = 10+self._medium_time)
-                if(self._data['plataform'].lower() == 'linux'):
-                    self.await_and_click("./images/sing-button-linux.png", await_time = 10+self._medium_time)
-                    time.sleep(self._small_time)
-                    self.await_for_image("./images/start-pve-button.png", self._big_time/2)
-                    self.await_for_image("./images/metamask_sign_tab.png", self._medium_time)
-                    self.await_for_image("./images/start-pve-button.png", self._big_time/2)
-                else:
+                time.sleep(self._small_time)
+                if(self._data['plataform'].lower() == 'windows'):
                     self.await_and_click("./images/sing-button-windows.png", await_time = 10+self._medium_time)
-                    time.sleep(self._small_time)
                     self.await_for_image("./images/start-pve-button.png", self._big_time)
-                i+=1
+                    i+=1
             except Exception as e:
                 print(e)
                 self.refresh()
+
+            if(self._data['plataform'].lower() == 'linux'):
+                try:
+                    self.await_and_click("./images/sing-button-linux.png", await_time = 2*self._medium_time)
+                    self.await_for_image("./images/start-pve-button.png", self._big_time)
+                except: 
+                    time.sleep(self._small_time)
+                    if(self.is_image_present("./images/metamask_sign_tab.png")):     
+                        self.await_for_image("./images/metamask_sign_tab.png", self._medium_time)
+                    else:
+                        print("Metamask tab not founded")
+                    time.sleep(self._small_time)
+                    try:
+                        self.await_and_click("./images/sing-button-linux.png", await_time = 2*self._medium_time)
+                        self.await_for_image("./images/start-pve-button.png", self._big_time)
+                    except Exception as e:
+                        print(e)
+                        self.refresh()
+
         print("Logged in after " + str(i-1) +" attempts")
 
     def scroll_down(self):
