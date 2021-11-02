@@ -119,7 +119,7 @@ class Bot:
                 self.await_and_click("./images/close-button.png", self._big_time)
         except:
             raise ValueError("Unable to go back to menu")
-
+        time.sleep(self._small_time)
         try:
             self.await_and_click("./images/heroes-menu-button.png", self._big_time)
         except:
