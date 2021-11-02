@@ -12,6 +12,7 @@ Linux:
 - Instalando o bot:
 	- sudo apt-get update
 	- sudo apt-get install scrot
+	- sudo apt install python3.8
 	- sudo apt-get install python3-tk python3-dev
 	- sudo apt install python3-pip
 	- python3 -m pip install pyautogui
