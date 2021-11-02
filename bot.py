@@ -117,8 +117,11 @@ class Bot:
                     try:
                         x, y = self.sear_for("./images/metamask_sign_tab.png", await_time = 2*self._medium_time)
                         pyautogui.click(x, y)
+                        time.sleep(self._small_time)
                         self.await_and_click("./images/sing-button-linux.png", await_time = 2*self._medium_time)
+                        time.sleep(self._small_time)
                         pyautogui.click(x, y)
+                        time.sleep(self._small_time)
                     except:
                         raise ValueError("Unable to click on sign button")
 
