@@ -1,4 +1,4 @@
-O bot funciona epenas no python 3.8.2 e é extremamente sensivel a resolução, então certifiquese que seu pc esta com a escala em 100% (para olhar essa configuração clique com o botão direito na area de trabalho, va em configuração de exibição e estara la) alem disso provavelmente sera necessario tirar todos os prints existentes na pasta images novamente no computador onde o bot sera rodado.
+O bot funciona epenas no python 3.8 e é extremamente sensivel a resolução, então certifiquese que seu pc esta com a escala em 100% (para olhar essa configuração clique com o botão direito na area de trabalho, va em configuração de exibição e estara la) alem disso provavelmente sera necessario tirar todos os prints existentes na pasta images novamente no computador onde o bot sera rodado.
 
 Windows:
 - Instalando o bot:
