@@ -201,17 +201,17 @@ class Bot:
             return 1
 
     def run(self):
-        estado = 0
+        state = 0
 
         while 1:
             time.sleep(self._small_time)
-            estado = self.select_wat_to_do(estado)
+            state = self.select_wat_to_do(state)
             try:
-                if(estado == 1):
+                if(state == 1):
                     self.refresh()
                     self.await_for_image("./images/connect-wallet-button.png", self._big_time)
                     self.try_to_login()
-                elif(estado == 2):
+                elif(state == 2):
                     self.put_heroes_to_work()
                 else:
                     self.await_for_new_map(self._data['map_time'])
@@ -220,6 +220,6 @@ class Bot:
                 self.refresh()
                 self.await_for_image("./images/connect-wallet-button.png", self._big_time)
                 self.try_to_login()
-                estado = 1
+                state = 1
 
 Bot().run()
