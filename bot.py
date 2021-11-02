@@ -114,9 +114,9 @@ class Bot:
         
         try:
             if(self.is_image_present("./images/back-to-menu-button.png")):
-                self.await_and_click("./images/back-to-menu-button.png", self._medium_time)
+                self.await_and_click("./images/back-to-menu-button.png", self._big_time)
             elif(self.is_image_present("./images/close-button.png")):
-                self.await_and_click("./images/close-button.png", self._medium_time)
+                self.await_and_click("./images/close-button.png", self._big_time)
         except Exception as e:
             print(e)
 
