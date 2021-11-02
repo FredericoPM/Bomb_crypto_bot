@@ -1,7 +1,7 @@
 {
-  "speed": 1,
+  "speed": 0.75,
   "map_time": 900,
   "work_button_confidence": 0.9,
   "server_lagged": false,
-  "plataform": "windows"
+  "plataform": "linux"
 }
