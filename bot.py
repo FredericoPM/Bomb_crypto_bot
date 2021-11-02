@@ -103,7 +103,7 @@ class Bot:
                 except: 
                     time.sleep(self._small_time)
                     if(self.is_image_present("./images/metamask_sign_tab.png")):     
-                        self.await_for_image("./images/metamask_sign_tab.png", self._medium_time)
+                        self.await_and_click("./images/metamask_sign_tab.png", self._medium_time)
                     else:
                         print("Metamask tab not founded")
                     time.sleep(self._small_time)
