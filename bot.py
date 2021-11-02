@@ -36,9 +36,7 @@ class Bot:
 
     def refresh(self):
         pyautogui.keyDown('ctrl')
-        pyautogui.keyDown('shift')
-        pyautogui.press('r')
-        pyautogui.keyUp('shift')
+        pyautogui.press('f5')
         pyautogui.keyUp('ctrl')
 
     def await_and_click(self, image, await_time, confidance = 0.9):
@@ -90,41 +88,13 @@ class Bot:
                 time.sleep(self._small_time)
                 if(self._data['plataform'].lower() == 'windows'):
                     self.await_and_click("./images/sing-button-windows.png", await_time = 10+self._medium_time)
-                    self.await_for_image("./images/start-pve-button.png", self._big_time)
-                    i+=1
+                else:
+                    self.await_and_click("./images/sing-button-linux.png", await_time = 10+self._medium_time)
+                self.await_for_image("./images/start-pve-button.png", self._big_time)
+                i+=1
             except Exception as e:
                 print(e)
                 self.refresh()
-
-            if(self._data['plataform'].lower() == 'linux'):
-                try:
-                    self.await_and_click("./images/sing-button-linux.png", await_time = 2*self._medium_time)
-                    self.await_for_image("./images/start-pve-button.png", self._big_time)
-                except: 
-                    time.sleep(self._small_time)
-                    if(self.is_image_present("./images/metamask_sign_tab.png")):
-                        for i in range(0, self._medium_time*2):
-                            try:
-                                x1, y1 = pyautogui.center(pyautogui.locateOnScreen("./images/metamask_sign_tab.png", confidence = 0.9))
-                                time.sleep(self._minimum_time)
-                                pyautogui.click(x1, y1)
-                                i += self._medium_time*2
-                                print("Image founded and clicked")
-                                return True
-                            except:
-                                time.sleep(1)
-                        time.sleep(self._small_time*2)
-                        pyautogui.click(x1, y1)
-                    else:
-                        print("Metamask tab not founded")
-                    time.sleep(self._small_time)
-                    try:
-                        self.await_and_click("./images/sing-button-linux.png", await_time = 2*self._medium_time)
-                        self.await_for_image("./images/start-pve-button.png", self._big_time)
-                    except Exception as e:
-                        print(e)
-                        self.refresh()
-
         print("Logged in after " + str(i-1) +" attempts")
 
     def scroll_down(self):
