@@ -53,9 +53,9 @@ class Bot:
             except:
                 time.sleep(1)
         time.sleep(self._small_time)
-        raise ValueError("Image " + image + " not founded")
+        raise ValueError("Image " + image + " not founded") from None
 
-    def sear_for(self, image, await_time, confidance = 0.9):
+    def search_for(self, image, await_time, confidance = 0.9):
         await_time = int(await_time)
         print("Awating for image: " + image + " for " + str(await_time) +"s")
         for i in range(0, await_time):
@@ -67,7 +67,7 @@ class Bot:
             except:
                 time.sleep(1)
         time.sleep(self._small_time)
-        raise ValueError("Image " + image + " not founded")
+        raise ValueError("Image " + image + " not founded") from None
 
     def await_for_image(self, image, await_time, confidance = 0.9):
         await_time = int(await_time)
@@ -81,7 +81,7 @@ class Bot:
             except:
                 time.sleep(1)
         time.sleep(self._small_time)
-        raise ValueError("Image " + image + " not founded")
+        raise ValueError("Image " + image + " not founded") from None
 
     def is_image_present(self, image, confidance = 0.9):
         try:
@@ -115,7 +115,7 @@ class Bot:
                     self.await_and_click("./images/sing-button-linux.png", await_time = 2*self._medium_time)
                 except:
                     try:
-                        x, y = self.sear_for("./images/metamask_sign_tab.png", await_time = 2*self._medium_time)
+                        x, y = self.search_for("./images/metamask_sign_tab.png", await_time = 2*self._medium_time)
                         pyautogui.click(x, y)
                         time.sleep(self._small_time)
                         self.await_and_click("./images/sing-button-linux.png", await_time = 2*self._medium_time)
