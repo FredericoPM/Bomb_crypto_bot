@@ -44,7 +44,7 @@ class Bot:
     def await_and_click(self, image, await_time, confidance = 0.9):
         await_time = int(await_time)
         print("Awating for image: " + image + " for " + str(await_time) +"s")
-        for i in range(0, await_time*2):
+        for i in range(0, await_time):
             try:
                 x1, y1 = pyautogui.center(pyautogui.locateOnScreen(image, confidence = confidance))
                 time.sleep(self._minimum_time)
@@ -60,14 +60,14 @@ class Bot:
     def await_for_image(self, image, await_time, confidance = 0.9):
         await_time = int(await_time)
         print("Awating for image: " + image + " for " + str(await_time) +"s")
-        for i in range(0, await_time*2):
+        for i in range(0, await_time):
             try:
                 x1, y1 = pyautogui.center(pyautogui.locateOnScreen(image, confidence = confidance))
                 i += await_time
                 print("Image founded")
                 return True
             except:
-                time.sleep(self._minimum_time)
+                time.sleep(1)
         time.sleep(self._small_time)
         raise ValueError("Image " + image + " not founded")
 
@@ -102,10 +102,19 @@ class Bot:
                     self.await_for_image("./images/start-pve-button.png", self._big_time)
                 except: 
                     time.sleep(self._small_time)
-                    if(self.is_image_present("./images/metamask_sign_tab.png")):     
-                        self.await_and_click("./images/metamask_sign_tab.png", self._medium_time)
-                        time.sleep(self._small_time)
-                        pyautogui.click(300, 300)
+                    if(self.is_image_present("./images/metamask_sign_tab.png")):
+                        for i in range(0, self._medium_time*2):
+                            try:
+                                x1, y1 = pyautogui.center(pyautogui.locateOnScreen("./images/metamask_sign_tab.png", confidence = 0.9))
+                                time.sleep(self._minimum_time)
+                                pyautogui.click(x1, y1)
+                                i += self._medium_time*2
+                                print("Image founded and clicked")
+                                return True
+                            except:
+                                time.sleep(1)
+                        time.sleep(self._small_time*2)
+                        pyautogui.click(x1, y1)
                     else:
                         print("Metamask tab not founded")
                     time.sleep(self._small_time)
