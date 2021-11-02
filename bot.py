@@ -1,3 +1,4 @@
+from numpy import true_divide
 from pyautogui import *
 import pyautogui
 import time
@@ -44,12 +45,25 @@ class Bot:
         print("Awating for image: " + image + " for " + str(await_time) +"s")
         for i in range(0, await_time):
             try:
-                x1, y1 = pyautogui.center(pyautogui.locateOnScreen(image, confidence = confidance))
+                x, y = pyautogui.center(pyautogui.locateOnScreen(image, confidence = confidance))
                 time.sleep(self._minimum_time)
-                pyautogui.click(x1, y1)
-                i += await_time
+                pyautogui.click(x, y)
                 print("Image founded and clicked")
                 return True
+            except:
+                time.sleep(1)
+        time.sleep(self._small_time)
+        raise ValueError("Image " + image + " not founded")
+
+    def sear_for(self, image, await_time, confidance = 0.9):
+        await_time = int(await_time)
+        print("Awating for image: " + image + " for " + str(await_time) +"s")
+        for i in range(0, await_time):
+            try:
+                x, y = pyautogui.center(pyautogui.locateOnScreen(image, confidence = confidance))
+                time.sleep(self._minimum_time)
+                print("Image founded")
+                return x, y
             except:
                 time.sleep(1)
         time.sleep(self._small_time)
@@ -82,19 +96,42 @@ class Bot:
         pyautogui.dragTo(10, 10)
         while(not self.is_image_present("./images/start-pve-button.png")):
             try:
-                self.await_and_click("./images/connect-wallet-button.png", await_time = 10+self._medium_time)
+                self.await_and_click("./images/connect-wallet-button.png", await_time = 3*self._medium_time)
                 time.sleep(self._small_time)
-                self.await_and_click("./images/metamask-fox.png", await_time = 10+self._medium_time)
+                self.await_and_click("./images/metamask-fox.png", await_time = 3*self._medium_time)
                 time.sleep(self._small_time)
-                if(self._data['plataform'].lower() == 'windows'):
-                    self.await_and_click("./images/sing-button-windows.png", await_time = 10+self._medium_time)
-                else:
-                    self.await_and_click("./images/sing-button-linux.png", await_time = 10+self._medium_time)
+            except Exception as e:
+                print(e)
+                self.refresh()
+
+            if(self._data['plataform'].lower() == 'windows'):
+                try:
+                    self.await_and_click("./images/sing-button-windows.png", await_time = 3*self._medium_time)
+                except Exception as e:
+                    print(e)
+                    self.refresh()
+            else:
+                try:
+                    self.await_and_click("./images/sing-button-linux.png", await_time = 2*self._medium_time)
+                except:
+                    try:
+                        x, y = self.sear_for("./images/metamask_sign_tab.png", await_time = 2*self._medium_time)
+                        pyautogui.click(x, y)
+                        time.sleep(self._small_time)
+                        self.await_and_click("./images/sing-button-linux.png", await_time = 2*self._medium_time)
+                        time.sleep(self._small_time)
+                        pyautogui.click(x, y)
+                        time.sleep(self._small_time)
+                    except:
+                        raise ValueError("Unable to click on sign button")
+
+            try:
                 self.await_for_image("./images/start-pve-button.png", self._big_time)
                 i+=1
             except Exception as e:
                 print(e)
                 self.refresh()
+
         print("Logged in after " + str(i-1) +" attempts")
 
     def scroll_down(self):
@@ -119,7 +156,7 @@ class Bot:
                 self.await_and_click("./images/close-button.png", self._big_time)
         except:
             raise ValueError("Unable to go back to menu")
-
+        time.sleep(self._small_time)
         try:
             self.await_and_click("./images/heroes-menu-button.png", self._big_time)
         except:
@@ -131,6 +168,8 @@ class Bot:
                 self.scroll_down()
         except Exception as e:
             print(e)
+
+        
         time.sleep(self._small_time)
         work_buttons = list(pyautogui.locateAllOnScreen('./images/work-button.png', confidence = self._data['work_button_confidence']))
         if(len(work_buttons) > 0):
