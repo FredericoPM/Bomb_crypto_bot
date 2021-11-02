@@ -52,7 +52,7 @@ class Bot:
                 return True
             except:
                 time.sleep(1)
-        
+        time.sleep(self._small_time)
         raise ValueError("Image " + image + " not founded")
 
     def await_for_image(self, image, await_time, confidance = 0.9):
@@ -66,21 +66,7 @@ class Bot:
                 return True
             except:
                 time.sleep(self._minimum_time)
-    
-        raise ValueError("Image " + image + " not founded")
-
-    def image(self, image, await_time, confidance = 0.9):
-        await_time = int(await_time)
-        print("Awating for image: " + image + " for " + str(await_time) +"s")
-        for i in range(0, await_time*2):
-            try:
-                x1, y1 = pyautogui.center(pyautogui.locateOnScreen(image, confidence = confidance))
-                i += await_time
-                print("Image founded")
-                return True
-            except:
-                time.sleep(self._minimum_time)
-        
+        time.sleep(self._small_time)
         raise ValueError("Image " + image + " not founded")
 
     def find_and_click(self, image, confidance = 0.9):
@@ -92,6 +78,7 @@ class Bot:
             print("Image founded and clicked")
             return True
         except:
+            time.sleep(self._small_time)
             raise ValueError("Image " + image + " not founded")
 
     def is_image_present(self, image, confidance = 0.9):
@@ -137,9 +124,9 @@ class Bot:
         
         try:
             if(self.is_image_present("./images/back-to-menu-button.png")):
-                self.find_and_click("./images/back-to-menu-button.png")
+                self.await_and_click("./images/back-to-menu-button.png", self._medium_time)
             elif(self.is_image_present("./images/close-button.png")):
-                self.find_and_click("./images/close-button.png")
+                self.await_and_click("./images/close-button.png", self._medium_time)
         except Exception as e:
             print(e)
 
