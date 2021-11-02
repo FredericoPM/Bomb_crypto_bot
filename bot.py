@@ -3,6 +3,8 @@ import pyautogui
 import time
 import json
 
+# TODO: Puxar a tela de sign na aws para frente antes de procurar pelo botão
+
 class Bot:
     _data = {
         'speed': 1.0,
@@ -95,12 +97,18 @@ class Bot:
         while(not self.is_image_present("./images/start-pve-button.png")):
             try:
                 self.await_and_click("./images/connect-wallet-button.png", await_time = 10+self._medium_time)
+                time.sleep(self._small_time)
                 self.await_and_click("./images/metamask-fox.png", await_time = 10+self._medium_time)
                 if(self._data['plataform'].lower() == 'linux'):
                     self.await_and_click("./images/sing-button-linux.png", await_time = 10+self._medium_time)
+                    time.sleep(self._small_time)
+                    self.await_for_image("./images/start-pve-button.png", self._big_time/2)
+                    self.await_for_image("./images/metamask_sign_tab.png", self._medium_time)
+                    self.await_for_image("./images/start-pve-button.png", self._big_time/2)
                 else:
                     self.await_and_click("./images/sing-button-windows.png", await_time = 10+self._medium_time)
-                self.await_for_image("./images/start-pve-button.png", self._big_time)
+                    time.sleep(self._small_time)
+                    self.await_for_image("./images/start-pve-button.png", self._big_time)
                 i+=1
             except Exception as e:
                 print(e)
