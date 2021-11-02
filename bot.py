@@ -26,6 +26,7 @@ class Bot:
             with open(config_file, "w") as write_file:
                 json.dump(self._data, write_file,indent=2)
 
+        self._data['speed'] = 1 if self._data['speed'] > 1 else self._data['speed']
         self._minimum_time *= (1/self._data['speed'])
         self._small_time *= (1/self._data['speed'])
         self._medium_time *= (1/self._data['speed'])
