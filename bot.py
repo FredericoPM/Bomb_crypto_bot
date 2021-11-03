@@ -243,4 +243,10 @@ class Bot:
                 self.try_to_login()
                 state = 1
 
-Bot().run()
+
+bot = Bot()
+while 1:
+    try:
+        bot.run()
+    except Exception as e:
+        print(e)
