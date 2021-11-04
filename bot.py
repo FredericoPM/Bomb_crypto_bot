@@ -178,7 +178,7 @@ class Bot:
         work_buttons = list(pyautogui.locateAllOnScreen('./images/work-button.png', confidence = self._data['work_button_confidence']))
         if(len(work_buttons) > 0):
             x1, y1 = pyautogui.center(work_buttons[len(work_buttons)-1])
-            for i in range(0, 20):
+            for i in range(0, 45):
                 pyautogui.click(x1, y1)
                 time.sleep(self._small_time)
                 if(not self.is_image_present('./images/work-button.png', confidance=0.5)):
