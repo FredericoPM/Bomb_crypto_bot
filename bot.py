@@ -9,7 +9,8 @@ class Bot:
         'speed': 1.0,
         'map_time': 900,
         'work_button_confidence': 0.9,
-        'server_lagged': False,
+        'default_confidence': 0.9,
+        'put_to_work_trys': 45,
         'plataform': 'windows'
     }
 
@@ -17,7 +18,7 @@ class Bot:
     _small_time = 1
     _medium_time = 5
     _big_time = 20
-
+    
     def __init__(self, config_file = "config.json"):
         config_file = config_file if config_file.find(".json") != -1 else "config.json"
         try:
@@ -40,9 +41,10 @@ class Bot:
         pyautogui.keyUp('shift')
         pyautogui.keyUp('ctrl')
 
-    def await_and_click(self, image, await_time, confidance = 0.9):
-        await_time = int(await_time)
-        print("Awating for image: " + image + " for " + str(await_time) +"s")
+
+    def await_and_click(self, image, await_time, confidance = _data['default_confidence']):
+        await_time = int(await_time/2)
+        print("Awating for image: " + image + " for " + str(await_time*2) +"s")
         for i in range(0, await_time):
             try:
                 x, y = pyautogui.center(pyautogui.locateOnScreen(image, confidence = confidance))
@@ -51,11 +53,11 @@ class Bot:
                 print("Image founded and clicked")
                 return True
             except:
-                time.sleep(1)
+                time.sleep(2)
         time.sleep(self._small_time)
-        raise ValueError("Image " + image + " not founded") from None
+        return False
 
-    def search_for(self, image, await_time, confidance = 0.9):
+    def search_for(self, image, await_time, confidance = _data['default_confidence']):
         await_time = int(await_time)
         print("Awating for image: " + image + " for " + str(await_time) +"s")
         for i in range(0, await_time):
@@ -67,11 +69,11 @@ class Bot:
             except:
                 time.sleep(1)
         time.sleep(self._small_time)
-        raise ValueError("Image " + image + " not founded") from None
+        return False
 
     def await_for_image(self, image, await_time, confidance = 0.9):
-        await_time = int(await_time)
-        print("Awating for image: " + image + " for " + str(await_time) +"s")
+        await_time = int(await_time/2)
+        print("Awating for image: " + image + " for " + str(await_time*2) +"s")
         for i in range(0, await_time):
             try:
                 x1, y1 = pyautogui.center(pyautogui.locateOnScreen(image, confidence = confidance))
@@ -79,41 +81,41 @@ class Bot:
                 print("Image founded")
                 return True
             except:
-                time.sleep(1)
+                time.sleep(2)
         time.sleep(self._small_time)
-        raise ValueError("Image " + image + " not founded") from None
-
+        return False
+    
     def is_image_present(self, image, confidance = 0.9):
         try:
             founded = pyautogui.center(pyautogui.locateOnScreen(image, confidence = confidance))
             return True
         except:
             return False
-        
+
     def try_to_login(self):
         i = 1
         print("Trying to log in")
         pyautogui.dragTo(100, 100)
         while(not self.is_image_present("./images/start-pve-button.png")):
-            try:
-                self.await_and_click("./images/connect-wallet-button.png", await_time = 3*self._medium_time)
-                time.sleep(self._small_time)
-                self.await_and_click("./images/metamask-fox.png", await_time = 3*self._medium_time)
-                time.sleep(self._small_time)
-            except Exception as e:
-                print(e)
+
+            flag = self.await_and_click("./images/connect-wallet-button.png", await_time = 3*self._medium_time)
+            time.sleep(self._small_time)
+            flag = flag and self.await_and_click("./images/metamask-fox.png", await_time = 3*self._medium_time)
+            time.sleep(self._small_time)
+            if(not flag):
+                print("Error while trying to connect")
                 self.refresh()
+                continue
 
             if(self._data['plataform'].lower() == 'windows'):
-                try:
-                    self.await_and_click("./images/sing-button-windows.png", await_time = 3*self._medium_time)
-                except Exception as e:
-                    print(e)
+                flag = self.await_and_click("./images/sing-button-windows.png", await_time = 3*self._medium_time)
+                if(not flag):
+                    print("Error while trying to connect")
                     self.refresh()
+                    continue
             else:
-                try:
-                    self.await_and_click("./images/sing-button-linux.png", await_time = 2*self._medium_time)
-                except:
+                flag = self.await_and_click("./images/sing-button-linux.png", await_time = 2*self._medium_time)
+                if(not flag):
                     try:
                         x, y = self.search_for("./images/metamask_sign_tab.png", await_time = 2*self._medium_time)
                         pyautogui.click(x, y)
@@ -124,14 +126,15 @@ class Bot:
                         time.sleep(self._small_time)
                     except Exception as e:
                         print(e)
-                        raise ValueError("Unable to click on sign button") from None
+                        self.refresh()
+                        continue
 
-            try:
-                self.await_for_image("./images/start-pve-button.png", self._big_time)
-                i+=1
-            except Exception as e:
-                print(e)
+            flag = self.await_for_image("./images/start-pve-button.png", self._big_time)
+            i+=1
+            if(not flag):
+                print("start-pve-button not founded")
                 self.refresh()
+                continue
 
         print("Logged in after " + str(i-1) +" attempts")
 
@@ -145,68 +148,96 @@ class Bot:
             pyautogui.dragTo(x1, y1-200, self._minimum_time, button='left')
             return True
         except Exception as e:
-            print(e)
-            raise ValueError("Unable to drag down") from None
+            return False
 
     def put_heroes_to_work(self):
         time.sleep(self._medium_time)
-        
-        try:
-            if(self.is_image_present("./images/back-to-menu-button.png")):
-                self.await_and_click("./images/back-to-menu-button.png", self._big_time)
+
+        puted_heroes_to_work = False
+        flag = True
+        while(not puted_heroes_to_work):
+
+            if(self.is_image_present("./images/back-to-menu-button.png") and not self.is_image_present("./images/hero-selection-drag-bar.png")):
+                flag = self.await_and_click("./images/back-to-menu-button.png", self._big_time)
             elif(self.is_image_present("./images/close-button.png")):
-                self.await_and_click("./images/close-button.png", self._big_time)
-        except Exception as e:
-            print(e)
-            raise ValueError("Unable to go back to menu") from None
-        time.sleep(self._small_time)
-        try:
-            self.await_and_click("./images/heroes-menu-button.png", self._big_time)
-        except Exception as e:
-            print(e)
-            raise ValueError("heroes-menu-button.png not found") from None
-        
-        try:
+                flag = self.await_and_click("./images/close-button.png", self._big_time)
+            if(not flag):
+                print("Unable to go back to menu")
+                continue
+            time.sleep(self._small_time)
+
+            if(not self.is_image_present("./images/hero-selection-drag-bar.png")):
+                flag = self.await_and_click("./images/heroes-menu-button.png", self._big_time)
+            if(not flag):
+                print("heroes-menu-button.png not found")
+                continue
+            time.sleep(self._small_time)
+
             self.await_for_image("./images/hero-selection-drag-bar.png", self._big_time)
             for i in range(0,4):
-                self.scroll_down()
-        except Exception as e:
-            print(e)
+                flag = self.scroll_down()
+                i = i-1 if not flag else i
+            time.sleep(self._small_time)
 
-        
-        time.sleep(self._small_time)
-        work_buttons = list(pyautogui.locateAllOnScreen('./images/work-button.png', confidence = self._data['work_button_confidence']))
-        if(len(work_buttons) > 0):
-            x1, y1 = pyautogui.center(work_buttons[len(work_buttons)-1])
-            for i in range(0, 45):
-                pyautogui.click(x1, y1)
-                time.sleep(self._small_time)
-                if(not self.is_image_present('./images/work-button.png', confidance=0.5)):
-                    self.await_and_click("./images/close-button.png", self._medium_time)
+            work_buttons = list(pyautogui.locateAllOnScreen('./images/work-button.png', confidence = self._data['work_button_confidence']))
+            if(len(work_buttons) > 0):
+                x1, y1 = pyautogui.center(work_buttons[len(work_buttons)-1])
+                for i in range(0, self._data['put_to_work_trys']):
+                    pyautogui.click(x1, y1)
                     time.sleep(self._small_time)
-                elif(not self.is_image_present('./images/work-button.png')):
-                    break
-        try:
-            self.await_and_click("./images/close-button.png", 10)
-            self.await_and_click("./images/start-pve-button.png", 10)
-        except Exception as e:
-            print(e)
-            raise ValueError("Erro whyle going back to pve") from None
+                    if(not self.is_image_present('./images/work-button.png', confidance=0.5)):
+                        self.await_and_click("./images/close-button.png", self._medium_time)
+                        time.sleep(self._small_time)
+                    elif(not self.is_image_present('./images/work-button.png')):
+                        break
+            
+            flag = self.await_and_click("./images/close-button.png", 2*self._medium_time)
+            flag = self.await_and_click("./images/start-pve-button.png", 2*self._medium_time)
+            if(not flag):
+                print("Unable to go back to menu")
+                continue
 
+            puted_heroes_to_work = True
+
+    def reset_map(self):
+        flag = self.await_and_click("./images/back-to-menu-button.png", self._medium_time)
+        time.sleep(self._small_time*2)
+        flag = self.await_and_click("./images/start-pve-button.png", self._medium_time)
+
+        if(not flag):
+            raise ValueError("Unable to reset map")
+    
     def await_for_new_map(self, await_time):
         print("Awaiting "+ str(await_time) +"s for new map")
         await_time = int(await_time/(self._small_time*2))
-        for i in range(0, await_time):
+        await_completely = int(await_time/3)
+        await_and_reset = int((await_time/3)*2)
+
+        for i in range(0, await_completely):
             if(self.is_image_present('./images/ok-button.png')):
                 raise ValueError("Lost connection")
             try:
-                x1, y1 = pyautogui.center(pyautogui.locateOnScreen("./images/new-map-button.png", confidence = 0.9))
+                x1, y1 = pyautogui.center(pyautogui.locateOnScreen("./images/new-map-button.png", confidence = self._data['default_confidence']))
                 pyautogui.click(x1, y1)
-                i += await_time
                 print("Image founded and clicked")
-                print("Awaiting "+ str((await_time-i)) +"s for new map")
+                print("Awaiting "+ str(((await_time/2)-i)) +"s for new map")
             except:
                 time.sleep(self._small_time*2)
+        
+        for i in range(0, await_and_reset):
+            if(i%60 == 0):
+                self.await_and_click("./images/new-map-button.png",  self._medium_time)
+                self.reset_map()
+            else:
+                if(self.is_image_present('./images/ok-button.png')):
+                    raise ValueError("Lost connection")
+                try:
+                    x1, y1 = pyautogui.center(pyautogui.locateOnScreen("./images/new-map-button.png", confidence = self._data['default_confidence']))
+                    pyautogui.click(x1, y1)
+                    print("Image founded and clicked")
+                    print("Awaiting "+ str(((await_time/2)-(i+await_completely))) +"s for new map")
+                except:
+                    time.sleep(self._small_time*2)
 
     #* 1 - login
     #* 2 - Put heroes to work
@@ -242,7 +273,6 @@ class Bot:
                 self.await_for_image("./images/connect-wallet-button.png", self._big_time)
                 self.try_to_login()
                 state = 1
-
 
 bot = Bot()
 while 1:
