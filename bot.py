@@ -114,7 +114,7 @@ class Bot:
                     self.refresh()
                     continue
             else:
-                flag = self.await_and_click("./images/sing-button-linux.png", await_time = 2*self._medium_time)
+                flag = self.await_and_click("./images/sing-button-linux.png", await_time = self._medium_time)
                 if(not flag):
                     try:
                         x, y = self.search_for("./images/metamask_sign_tab.png", await_time = 2*self._medium_time)
