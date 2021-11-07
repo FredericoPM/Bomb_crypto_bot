@@ -2,6 +2,7 @@
   "speed": 0.75,
   "map_time": 900,
   "work_button_confidence": 0.9,
-  "server_lagged": false,
+  "default_confidence": 0.9,
+  "put_to_work_trys": 15,
   "plataform": "linux"
 }
