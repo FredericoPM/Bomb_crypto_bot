@@ -1,8 +1,8 @@
 {
   "speed": 0.5,
-  "map_time": 900,
+  "map_time": 600,
   "work_button_confidence": 0.9,
   "default_confidence": 0.9,
-  "put_to_work_trys": 15,
+  "put_to_work_trys": 45,
   "plataform": "linux"
 }

@@ -155,7 +155,9 @@ class Bot:
 
         puted_heroes_to_work = False
         flag = True
-        while(not puted_heroes_to_work):
+        for i in range (0,5):
+            if(puted_heroes_to_work):
+                continue
 
             if(self.is_image_present("./images/back-to-menu-button.png") and not self.is_image_present("./images/hero-selection-drag-bar.png")):
                 flag = self.await_and_click("./images/back-to-menu-button.png", self._big_time)
@@ -198,6 +200,9 @@ class Bot:
                 continue
 
             puted_heroes_to_work = True
+
+        if(not puted_heroes_to_work):
+            raise ValueError("Unable to put heroes to work")
 
     def reset_map(self):
         flag = self.await_and_click("./images/back-to-menu-button.png", self._medium_time)
