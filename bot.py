@@ -279,6 +279,7 @@ class Bot:
                 self.try_to_login()
                 state = 1
 
+pyautogui.FAILSAFE = False
 bot = Bot()
 while 1:
     try:
