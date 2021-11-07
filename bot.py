@@ -284,4 +284,5 @@ while 1:
     try:
         bot.run()
     except Exception as e:
+        bot = Bot()
         print(e)
