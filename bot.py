@@ -215,8 +215,8 @@ class Bot:
     def await_for_new_map(self, await_time):
         #print("Awaiting "+ str(await_time) +"s for new map")
         await_time = int(await_time/(self._small_time*2))
-        await_completely = int(await_time/3)
-        await_and_reset = int((await_time/3)*2)
+        await_completely = int(await_time/4)
+        await_and_reset = int((await_time/4)*3)
 
         for i in range(0, await_completely):
             if(self.is_image_present('./images/ok-button.png')):
