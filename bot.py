@@ -219,7 +219,7 @@ class Bot:
         await_and_reset = int((await_time/4)*3)
 
         for i in range(0, await_completely):
-            if(self.is_image_present('./images/ok-button.png')):
+            if(self.is_image_present('./images/ok-button.png', confidance=0.8)):
                 raise ValueError("Lost connection")
             try:
                 x1, y1 = pyautogui.center(pyautogui.locateOnScreen("./images/new-map-button.png", confidence = self._data['default_confidence']))
