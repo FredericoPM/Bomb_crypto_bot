@@ -44,6 +44,7 @@ class Bot:
 
     def await_and_click(self, image, await_time, confidance = _data['default_confidence']):
         await_time = int(await_time/2)
+        await_time = await_time if await_time > 1 else 2
         #print("Awating for image: " + image + " for " + str(await_time*2) +"s")
         for i in range(0, await_time):
             try:
@@ -73,6 +74,7 @@ class Bot:
 
     def await_for_image(self, image, await_time, confidance = 0.9):
         await_time = int(await_time/2)
+        await_time = await_time if await_time > 1 else 2
         #print("Awating for image: " + image + " for " + str(await_time*2) +"s")
         for i in range(0, await_time):
             try:
@@ -214,35 +216,14 @@ class Bot:
     
     def await_for_new_map(self, await_time):
         #print("Awaiting "+ str(await_time) +"s for new map")
-        await_time = int(await_time/(self._small_time*2))
-        await_completely = int(await_time/4)
-        await_and_reset = int((await_time/4)*3)
+        await_time = int(await_time/(2+self._medium_time))
 
-        for i in range(0, await_completely):
-            if(self.is_image_present('./images/ok-button.png', confidance=0.8)):
+        for i in range(0, await_time):
+            self.await_and_click("./images/new-map-button.png", self._medium_time)
+            if(self.await_for_image('./images/ok-button.png', 2, confidance=0.75)):
                 raise ValueError("Lost connection")
-            try:
-                x1, y1 = pyautogui.center(pyautogui.locateOnScreen("./images/new-map-button.png", confidence = self._data['default_confidence']))
-                pyautogui.click(x1, y1)
-                #print("Image founded and clicked")
-                #print("Awaiting "+ str(((await_time/2)-i)) +"s for new map")
-            except:
-                time.sleep(self._small_time*2)
-        
-        for i in range(0, await_and_reset):
-            if(i%60 == 0):
-                self.await_and_click("./images/new-map-button.png",  self._medium_time)
+            if(i*(2+self._medium_time) > 600):
                 self.reset_map()
-            else:
-                if(self.is_image_present('./images/ok-button.png')):
-                    raise ValueError("Lost connection")
-                try:
-                    x1, y1 = pyautogui.center(pyautogui.locateOnScreen("./images/new-map-button.png", confidence = self._data['default_confidence']))
-                    pyautogui.click(x1, y1)
-                    #print("Image founded and clicked")
-                    #print("Awaiting "+ str(((await_time/2)-(i+await_completely))) +"s for new map")
-                except:
-                    time.sleep(self._small_time*2)
 
     #* 1 - login
     #* 2 - Put heroes to work
