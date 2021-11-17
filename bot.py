@@ -216,13 +216,13 @@ class Bot:
     
     def await_for_new_map(self, await_time):
         #print("Awaiting "+ str(await_time) +"s for new map")
-        await_time = int(await_time/(2+self._medium_time))
+        await_time = int(await_time/self._medium_time)
 
         for i in range(0, await_time):
             self.await_and_click("./images/new-map-button.png", self._medium_time)
-            if(self.await_for_image('./images/ok-button.png', 2, confidance=0.75)):
+            if(not self.is_image_present("./images/back-to-menu-button.png")):
                 raise ValueError("Lost connection")
-            if(i*(2+self._medium_time) > 600 and int(i*(2+self._medium_time)) % 60 == 0):
+            if(i*self._medium_time > 600 and int(i*self._medium_time) % 60 == 0):
                 self.reset_map()
 
     #* 1 - login
