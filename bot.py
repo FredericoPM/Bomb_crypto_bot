@@ -222,7 +222,7 @@ class Bot:
             self.await_and_click("./images/new-map-button.png", self._medium_time)
             if(self.await_for_image('./images/ok-button.png', 2, confidance=0.75)):
                 raise ValueError("Lost connection")
-            if(i*(2+self._medium_time) > 600):
+            if(i*(2+self._medium_time) > 600 and int(i*(2+self._medium_time)) % 60 == 0):
                 self.reset_map()
 
     #* 1 - login
