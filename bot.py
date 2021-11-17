@@ -221,6 +221,7 @@ class Bot:
         for i in range(0, await_time):
             self.await_and_click("./images/new-map-button.png", self._medium_time)
             if(not self.is_image_present("./images/back-to-menu-button.png")):
+                self.refresh()
                 raise ValueError("Lost connection")
             if(i*self._medium_time > 600 and int(i*self._medium_time) % 60 == 0):
                 self.reset_map()
