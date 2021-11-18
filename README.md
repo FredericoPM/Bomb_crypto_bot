@@ -2,7 +2,7 @@ O bot funciona epenas no python 3.8 e é extremamente sensivel a resolução, en
 
 Windows:
 - Instalando o bot:
-	- Instalar o python 3.8.2 (arquivo de instalação esta na pasta windows dentro da pasta do bot, *marque a opção de adicionar o python ao path*)
+	- Instalar o python 3.8 (arquivo de instalação esta na pasta windows dentro da pasta do bot, *marque a opção de adicionar o python ao path*)
 	- python ./windows/get-pip.py (deve ser rodado dentro da pasta do bot)
 	- pip install pyautogui
 	- pip install opencv-python
