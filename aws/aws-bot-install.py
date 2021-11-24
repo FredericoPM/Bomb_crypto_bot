@@ -68,7 +68,7 @@ class Config_AWS:
         keyboard.press('backspace')
         time.sleep(1)
         self._write_command_and_await_for_key('vncserver -kill :1', self._key_await)
-        pyautogui.write('vncserver :1', interval=.1)
+        pyautogui.write('vncserver -geometry 1920x1080 :1', interval=.1)
         pyautogui.press('enter')
 
     def install_libraries_and_vivald(self):
