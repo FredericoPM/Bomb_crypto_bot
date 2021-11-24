@@ -216,15 +216,21 @@ class Bot:
             raise ValueError("Unable to reset map")
     
     def await_for_new_map(self, await_time):
-        #print("Awaiting "+ str(await_time) +"s for new map")
-        await_time = int(await_time/self._medium_time)
+        #print("Awaiting " + str(await_time) + "s for new map")
+        time_left = await_time
+        time_start_refresh = int(await_time * 0.8)
 
-        for i in range(0, await_time):
+        while time_left > 0:
+            time_start = time.perf_counter()
             self.await_and_click("./images/new-map-button.png", self._medium_time/2)
             if(self.await_and_click("./images/ok-button.png", self._medium_time/2)):
                 raise ValueError("Lost connection")
-            if(i*self._medium_time > 1200 and int(i*self._medium_time) % 60 == 0):
+            time_progress = int(await_time - time_left)
+            time_refresh = int(time_progress % 70)
+            if(time_progress > time_start_refresh and time_refresh > 60):
                 self.reset_map()
+            time_spent = time.perf_counter() - time_start
+            time_left -= time_spent
 
     #* 1 - login
     #* 2 - Put heroes to work
