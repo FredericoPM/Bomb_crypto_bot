@@ -20,6 +20,7 @@ Linux:
 
 	- python3 bot.py (starta o bot, deve ser rodado dentro da pasta do bot)
 		
-- Instalar Chrome :
-	- wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-	- sudo apt install ./google-chrome-stable_current_amd64.deb
+- Instalando o Vivaldi :
+	- wget -qO- http://repo.vivaldi.com/stable/linux_signing_key.pub | sudo apt-key add -
+	- sudo add-apt-repository "deb [arch=i386,amd64] http://repo.vivaldi.com/stable/deb/ stable main"
+	- sudo apt install vivaldi-stable
