@@ -9,6 +9,7 @@ class Bot:
     _data = {
         'speed': 1.0,
         'map_time': 900,
+        'map_expected_time_finish': 7200,
         'work_button_confidence': 0.9,
         'default_confidence': 0.9,
         'put_to_work_trys': 45,
@@ -20,7 +21,6 @@ class Bot:
     _medium_time = 5
     _big_time = 20
     _map_time_start = time.perf_counter()
-    _map_expected_time_finish = 7200 #Adjust according to the strength of your heroes
     
     def __init__(self, config_file = "config.json"):
         config_file = config_file if config_file.find(".json") != -1 else "config.json"
@@ -29,7 +29,7 @@ class Bot:
                 self._data = json.load(read_file)
         except Exception as e:
             with open(config_file, "w") as write_file:
-                json.dump(self._data, write_file,indent=2)
+                json.dump(self._data, write_file, indent=2)
 
         self._data['speed'] = 1 if self._data['speed'] > 1 else self._data['speed']
         self._minimum_time *= (1/self._data['speed'])
@@ -215,7 +215,7 @@ class Bot:
         time.sleep(self._small_time*2)
         self.await_and_click("./images/start-pve-button.png", self._medium_time)
     
-    def await_for_new_map(self, await_time):
+    def await_for_new_map(self, await_time, map_expected_time_finish):
         endTime = (datetime.datetime.now() + datetime.timedelta(seconds=await_time)).time()
         print("Awaiting " + str(int(await_time / 60)) + "m for new map " + endTime.strftime("%H:%M:%S"))
         
@@ -234,7 +234,7 @@ class Bot:
             time_progress = await_time - time_left
             time_interval_refresh = time_progress % 70
 
-            if(map_time_spent > self._map_expected_time_finish and time_interval_refresh > 60):
+            if(map_time_spent > map_expected_time_finish and time_interval_refresh > 60):
                 self.reset_map()
 
             time_spent = time.perf_counter() - time_start
@@ -267,7 +267,7 @@ class Bot:
                 elif(state == 2):
                     self.put_heroes_to_work()
                 else:
-                    self.await_for_new_map(self._data['map_time'])
+                    self.await_for_new_map(self._data['map_time'], self._data['map_expected_time_finish'])
             except Exception as e:
                 print(e)
                 self.refresh()
