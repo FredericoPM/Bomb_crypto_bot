@@ -211,12 +211,9 @@ class Bot:
             raise ValueError("Unable to put heroes to work")
 
     def reset_map(self):
-        flag = self.await_and_click("./images/back-to-menu-button.png", self._medium_time)
+        self.await_and_click("./images/back-to-menu-button.png", self._medium_time)
         time.sleep(self._small_time*2)
-        flag = self.await_and_click("./images/start-pve-button.png", self._medium_time)
-
-        if(not flag):
-            raise ValueError("Unable to reset map")
+        self.await_and_click("./images/start-pve-button.png", self._medium_time)
     
     def await_for_new_map(self, await_time):
         endTime = (datetime.datetime.now() + datetime.timedelta(seconds=await_time)).time()
