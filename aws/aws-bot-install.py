@@ -78,7 +78,7 @@ class Config_AWS:
         time.sleep(1)
         self._write_command_and_await_for_key('sudo apt-get update', self._key_await)
         self._write_command_and_await_for_key('wget -qO- http://repo.vivaldi.com/stable/linux_signing_key.pub | sudo apt-key add -', self._key_await)
-        self._write_command_and_await_for_key('sudo add-apt-repository "deb [arch=i386,amd64] http://repo.vivaldi.com/stable/deb/ stable main" ', self._key_await)
+        self._write_command_and_await_for_key('sudo add-apt-repository "deb [arch=aarch64,arm64] http://repo.vivaldi.com/stable/deb/ stable main" ', self._key_await)
         self._write_command_and_await_for_key('sudo apt install vivaldi-stable', self._key_await)
         self._write_command_and_await_for_key('sudo apt install python3.8', self._key_await)
         self._write_command_and_await_for_key('sudo apt-get install python3-tk python3-dev', self._key_await)
@@ -94,7 +94,7 @@ class Config_AWS:
         keyboard.press('backspace')
         time.sleep(1)
         self._write_command_and_await_for_key('wget -qO- http://repo.vivaldi.com/stable/linux_signing_key.pub | sudo apt-key add -', self._key_await)
-        self._write_command_and_await_for_key('sudo add-apt-repository "deb [arch=i386,amd64] http://repo.vivaldi.com/stable/deb/ stable main" ', self._key_await)
+        self._write_command_and_await_for_key('sudo add-apt-repository "deb [arch=aarch64,arm64] http://repo.vivaldi.com/stable/deb/ stable main" ', self._key_await)
         self._write_command_and_await_for_key('sudo apt install vivaldi-stable', self._key_await)
         
 
