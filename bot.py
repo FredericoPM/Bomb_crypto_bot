@@ -3,11 +3,13 @@ from pyautogui import *
 import pyautogui
 import time
 import json
+import datetime
 
 class Bot:
     _data = {
         'speed': 1.0,
         'map_time': 900,
+        'map_expected_time_finish': 7200,
         'work_button_confidence': 0.9,
         'default_confidence': 0.9,
         'put_to_work_trys': 45,
@@ -18,6 +20,7 @@ class Bot:
     _small_time = 1
     _medium_time = 5
     _big_time = 20
+    _map_time_start = time.perf_counter()
     
     def __init__(self, config_file = "config.json"):
         config_file = config_file if config_file.find(".json") != -1 else "config.json"
@@ -26,7 +29,7 @@ class Bot:
                 self._data = json.load(read_file)
         except Exception as e:
             with open(config_file, "w") as write_file:
-                json.dump(self._data, write_file,indent=2)
+                json.dump(self._data, write_file, indent=2)
 
         self._data['speed'] = 1 if self._data['speed'] > 1 else self._data['speed']
         self._minimum_time *= (1/self._data['speed'])
@@ -206,23 +209,34 @@ class Bot:
             raise ValueError("Unable to put heroes to work")
 
     def reset_map(self):
-        flag = self.await_and_click("./images/back-to-menu-button.png", self._medium_time)
+        self.await_and_click("./images/back-to-menu-button.png", self._medium_time)
         time.sleep(self._small_time*2)
-        flag = self.await_and_click("./images/start-pve-button.png", self._medium_time)
-
-        if(not flag):
-            raise ValueError("Unable to reset map")
+        self.await_and_click("./images/start-pve-button.png", self._medium_time)
     
-    def await_for_new_map(self, await_time):
-        #print("Awaiting "+ str(await_time) +"s for new map")
-        await_time = int(await_time/self._medium_time)
+    def await_for_new_map(self, await_time, map_expected_time_finish):
+        endTime = (datetime.datetime.now() + datetime.timedelta(seconds=await_time)).time()
+        print("Awaiting " + str(int(await_time / 60)) + "m for new map " + endTime.strftime("%H:%M:%S"))
+        
+        time_left = await_time
+        while time_left > 0:
+            time_start = time.perf_counter()
 
-        for i in range(0, await_time):
-            self.await_and_click("./images/new-map-button.png", self._medium_time/2)
+            if(self.await_and_click("./images/new-map-button.png", self._medium_time/2)):
+                print("Map time spent " + str(int(map_time_spent / 60)) + "m")
+                self._map_time_start = time.perf_counter()
+
             if(self.await_and_click("./images/ok-button.png", self._medium_time/2)):
                 raise ValueError("Lost connection")
-            if(i*self._medium_time > 1200 and int(i*self._medium_time) % 60 == 0):
+
+            map_time_spent = time.perf_counter() - self._map_time_start
+            time_progress = await_time - time_left
+            time_interval_refresh = time_progress % 70
+
+            if(map_time_spent > map_expected_time_finish and time_interval_refresh > 60):
                 self.reset_map()
+
+            time_spent = time.perf_counter() - time_start
+            time_left -= time_spent
 
     #* 1 - login
     #* 2 - Put heroes to work
@@ -251,9 +265,9 @@ class Bot:
                 elif(state == 2):
                     self.put_heroes_to_work()
                 else:
-                    self.await_for_new_map(self._data['map_time'])
+                    self.await_for_new_map(self._data['map_time'], self._data['map_expected_time_finish'])
             except Exception as e:
-                #print(e)
+                print(e)
                 self.refresh()
                 self.await_for_image("./images/connect-wallet-button.png", self._big_time)
                 self.try_to_login()
@@ -266,4 +280,4 @@ while 1:
         bot.run()
     except Exception as e:
         bot = Bot()
-        #print(e)
+        print(e)
