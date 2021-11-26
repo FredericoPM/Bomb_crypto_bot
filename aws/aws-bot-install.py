@@ -5,7 +5,7 @@ import keyboard
 
 class Config_AWS:
     #TODO: alterar tecla
-    _key_await = '9'
+    _key_await = '0'
 
     def _write_command_and_await_for_key(self, command, key):
         pyautogui.write(command, interval=.1)

@@ -103,8 +103,6 @@ class Bot:
 
             flag = self.await_and_click("./images/connect-wallet-button.png", await_time = 3*self._medium_time)
             time.sleep(self._small_time)
-            flag = flag and self.await_and_click("./images/metamask-fox.png", await_time = 3*self._medium_time)
-            time.sleep(self._small_time)
             if(not flag):
                 #print("Error while trying to connect")
                 self.refresh()
