@@ -161,7 +161,10 @@ class Bot:
                     flag = self.await_and_click("./images/sing-button-linux-chrome.png", await_time = self.randonTime(2*self._medium_time))
                 if(not flag):
                     try:
-                        x, y = self.search_for("./images/metamask_sign_tab.png", await_time = 2*self._medium_time)
+                        if(self._data['browser'].lower() == 'vivald'):
+                            x, y = self.search_for("./images/metamask_sign_tab_vivald.png", await_time = self.randonTime(2*self._medium_time))
+                        else:
+                            x, y = self.search_for("./images/metamask_sign_tab_chrome.png", await_time = self.randonTime(*self._medium_time))
                         if(x == -1):
                             raise ValueError("metamask_sign_tab not founded")
                         pyautogui.click(x, y)
