@@ -88,7 +88,8 @@ class Bot:
         for i in range(0, await_time):
             try:
                 x, y = self.randon_center(pyautogui.locateOnScreen(image, confidence = confidance))
-                time.sleep(self._minimum_time)
+                pyautogui.moveTo(x, y)
+                time.sleep(self.randonTime(self._minimum_time))
                 pyautogui.click(x, y)
                 self.bot_log.info("Image founded and clicked")
                 return True
@@ -270,7 +271,7 @@ class Bot:
             time.sleep(self.randonTime(self._minimum_time))
             pyautogui.moveTo(x, y)
             time.sleep(self.randonTime(self._minimum_time))
-            pyautogui.dragTo(x, y-200, self._minimum_time, button='left')
+            pyautogui.dragTo(x, random.randint(y-300, y-180), self.randonTime(self._minimum_time), button='left')
             return True
         except Exception as e:
             return False
