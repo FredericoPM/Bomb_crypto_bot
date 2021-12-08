@@ -6,6 +6,6 @@
   "default_confidence": 0.9,
   "put_to_work_trys": 45,
   "plataform": "linux",
-  "browser": "vivald",
+  "browser": "chrome",
   "console_log": false
 }
