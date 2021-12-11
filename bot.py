@@ -13,8 +13,8 @@ class Bot:
         'speed': 1.0,
         'map_time': 2400,
         'map_expected_time_finish': 9000,
-        'work_button_confidence': 0.92,
-        'default_confidence': 0.92,
+        'work_button_confidence': 0.9,
+        'default_confidence': 0.9,
         'put_to_work_trys': 45,
         'plataform': 'windows',
         'browser': 'chrome',
@@ -43,6 +43,7 @@ class Bot:
         if(self._data['console_log']):
             self.bot_log = logging
             self.bot_log.basicConfig(format ='[%(asctime)s] %(levelname)s - %(message)s', datefmt='%H:%M:%S', level = logging.DEBUG if self._data['log_level'].lower() == "debug" else logging.INFO)
+            self.bot_log.basicConfig(format ='[%(asctime)s-%(levelname)s] %(message)s', datefmt='%H:%M:%S', level = logging.DEBUG if self._data['log_level'].lower() == "debug" else logging.INFO)
         else:
             log_formatter = logging.Formatter('[%(asctime)s] %(levelname)s - %(message)s', datefmt='%H:%M:%S')
             my_handler = RotatingFileHandler('./.log', mode='a', maxBytes=1024*1024, encoding=None, delay=0)
@@ -250,23 +251,23 @@ class Bot:
 
         window = pyautogui.locateOnScreen("./images/captcha_window.png", confidence = 0.92)
         if (window != None):
-            self.bot_log.info("Captcha flow start")
-            while True:
-                try:
+            self.bot_log.info("Captcha START")
+            try:
+                while True:
                     #* Window
                     windowCaptchaOneRegion = Box(window.left + 85, window.top + 150, 185, 70)
                     windowCaptchaTwoRegion = Box(window.left + 75, window.top + 120, 420, 140)
                     windowSliderRegion = Box(window.left, window.top + 350, 520, 80)
                     
                     #* Slider
-                    captchaButton = pyautogui.locateOnScreen("./images/captcha_button.png", region=windowSliderRegion, confidence = 0.9)
+                    captchaButton = pyautogui.locateOnScreen("./images/captcha_button.png", region=windowSliderRegion, confidence = 0.92)
                     buttonX, buttonY = pyautogui.center(captchaButton)
                     sliderMargin = buttonX - window.left
                     sliderSize = 520 - sliderMargin * 2
 
                     #* Captcha locate
                     first, second, third = self.find_captcha(windowCaptchaOneRegion)
-                    self.bot_log.info(f"Trying find CAPTCHA: {first}{second}{third}")
+                    self.bot_log.info(f"Trying find captcha: {first}{second}{third}")
 
                     #* Calculate scrolled distance, click and move
                     sliderDistance = int(sliderSize / 4)
@@ -285,100 +286,104 @@ class Bot:
                     pyautogui.mouseUp()
 
                     if (not self.is_image_present("./images/captcha_button.png")):
-                        self.bot_log.info("Trying to solve captcha END")
+                        self.bot_log.info("Captcha END")
                         break
-                except Exception as e:
-                    self.bot_log.error(f"Error on try_captcha: {e}")
-                    time.sleep(self.randonTime(self._small_time))
+            except Exception as e:
+                self.bot_log.error(f"Error on try_captcha: {e}")
+                raise ValueError("Unable to Try Captcha")
 
     def find_captcha(self, box: Box):
-        self.bot_log.info("Trying find CAPTCHA")
-        numbers = []
-        count = 0
+        self.bot_log.info("Trying find captcha")
+        try:
+            numbers = []
+            count = 0
         
-        for i in range(10):
-            try:
+            for i in range(10):
                 number = pyautogui.locateOnScreen(f"./images/{i}.png", region=box, confidence = 0.92)
                 if (number != None): 
                     numbers.append((i, number.left))
                     count += 1
                     if (count == 3):
                         break
-            except Exception as e:
-                self.bot_log.error(f"Error on find_captcha: {e}")
-                raise ValueError("Unable to find captcha")
-
-        numbersOrderned = sorted(numbers, key=lambda elem: elem[1])
-        return [elem[0] for elem in numbersOrderned]
+                    
+            numbersOrderned = sorted(numbers, key=lambda elem: elem[1])
+            return [elem[0] for elem in numbersOrderned]
+        except Exception as e:
+            self.bot_log.error(f"Error on find_captcha: {e}")
+            raise ValueError("Unable to Find Captcha")
     
     def find_captcha_two(self, ssRegion: Box, first, second, third, whileIndex):
-        ss = pyautogui.screenshot(region=ssRegion)
+        try:
+            ss = pyautogui.screenshot(region=ssRegion)
 
-        white = (255, 255, 255)
-        brown = (186, 113, 86)
-        numbersToFind = (first, second, third)
-        numbers = (
-            [0, 106, ([10, 0, white], [35, -90, white], [55, 0, white]), 71], #100%
-            [1, 120, ([3, -110, white], [6, -110, white], [13, 8, white]), 20], #100%
-            [2, 110, ([33, -100, white], [40, 10, white], [80, 18, white]), 85], #100%
-            [3, 17, ([40, 13, white], [57, 79, white], [54, 87, white]), 70], #50%
-            [4, 28, ([7, 0, white], [40, 90, white], [50, 0, white]), 60], #100#
-            [5, 114, ([10, -9, white], [14, -82, white], [65, -19, white]), 73], #75%
-            [6, 100, ([15, -72, white], [38, 0, white], [65, -5, white]), 76], #100%
-            [7, 113, ([10, 5, white], [16, -18, white], [28, -85, white]), 20], #75%
-            [8, 99, ([3, -4, white], [4, -4, white], [57, -66, white]), 72], #50%
-            [9, 106, ([-5, -73, white], [10, -11, white], [11, 4, white]), 19] #50
-        )
+            white = (255, 255, 255)
+            brown = (186, 113, 86)
+            numbersToFind = (first, second, third)
+            numbers = (
+                [0, 106, ([10, 0, white], [35, -90, white], [55, 0, white]), 71], #100%
+                [1, 120, ([3, -110, white], [6, -110, white], [13, 8, white]), 20], #100%
+                [2, 110, ([33, -100, white], [40, 10, white], [80, 18, white]), 85], #100%
+                [3, 17, ([40, 13, white], [57, 79, white], [54, 87, white]), 70], #50%
+                [4, 28, ([7, 0, white], [40, 90, white], [50, 0, white]), 60], #90#
+                [5, 114, ([10, -9, white], [14, -82, white], [65, -19, white]), 73], #75%
+                [6, 100, ([15, -72, white], [38, 0, white], [65, -5, white]), 76], #100%
+                [7, 113, ([10, 5, white], [16, -18, white], [28, -85, white]), 20], #75%
+                [8, 99, ([3, -4, white], [4, -4, white], [57, -66, white]), 72], #50%
+                [9, 106, ([-5, -73, white], [10, -11, white], [11, 4, white]), 19] #50
+            )
 
-        marginX = 0
-        marginY = 0
-        pixelWhiteSize = 0
-        numberMinSize = 11
-        numberPosition = 0
-        numberToFind = numbersToFind[numberPosition]
-        while marginX < ssRegion.width:
-            try:
-                marginY = numbers[numberToFind][1]
-                pixels = numbers[numberToFind][2]
-                nextNumberStart = numbers[numberToFind][3]
-                
-                if (ss.getpixel((marginX, marginY)) == white):
-                    pixelWhiteSize += 1
-                    if (pixelWhiteSize == numberMinSize):
-                        marginX -= numberMinSize - 1
+            marginX = 0
+            marginY = 0
+            pixelWhiteSize = 0
+            numberMinSize = 11
+            numberPosition = 0
+            numberToFind = numbersToFind[numberPosition]
+            while marginX < ssRegion.width:
+                try:
+                    marginY = numbers[numberToFind][1]
+                    pixels = numbers[numberToFind][2]
+                    nextNumberStart = numbers[numberToFind][3]
+                    
+                    if (ss.getpixel((marginX, marginY)) == white):
+                        pixelWhiteSize += 1
+                        if (pixelWhiteSize == numberMinSize):
+                            marginX -= numberMinSize - 1
+                            pixelWhiteSize = 0
+                            
+                            # ss.putpixel((marginX, marginY), (0, 128, 0))
+                            localizedAllPixels = 0
+                            for pixel in pixels:
+                                pixX = pixel[0]
+                                pixY = pixel[1]
+                                color = pixel[2]
+                                if (ss.getpixel((marginX + pixX, marginY + pixY)) == color): 
+                                    localizedAllPixels += 1
+                                # ss.putpixel((marginX + pixX, marginY + pixY), (255, 0, 0))
+
+                            if (localizedAllPixels == 3):
+                                marginX = marginX + nextNumberStart
+                            else:
+                                self.bot_log.info(f"#{whileIndex + 1} not find: {numberToFind}")
+                                # ss.save(f'my_screenshot_{whileIndex + 1}.png')
+                                return False
+
+                            numberPosition += 1
+                            if (numberPosition < 3):
+                                numberToFind = numbersToFind[numberPosition]
+                            else:
+                                self.bot_log.info(f"#{whileIndex + 1} find all")
+                    else:
                         pixelWhiteSize = 0
-                        
-                        # ss.putpixel((marginX, marginY), (0, 128, 0))
-                        localizedAllPixels = 0
-                        for pixel in pixels:
-                            pixX = pixel[0]
-                            pixY = pixel[1]
-                            color = pixel[2]
-                            if (ss.getpixel((marginX + pixX, marginY + pixY)) == color): 
-                                localizedAllPixels += 1
-                            # ss.putpixel((marginX + pixX, marginY + pixY), (255, 0, 0))
-
-                        if (localizedAllPixels == 3):
-                            marginX = marginX + nextNumberStart
-                        else:
-                            self.bot_log.info(f"#{whileIndex + 1} not find: {numberToFind}")
-                            # ss.save(f'my_screenshot_{whileIndex + 1}.png')
-                            return False
-
-                        numberPosition += 1
-                        if (numberPosition < 3):
-                            numberToFind = numbersToFind[numberPosition]
-                        else:
-                            self.bot_log.info(f"#{whileIndex + 1} find all")
-                else:
-                    pixelWhiteSize = 0
-                
-                marginX += 1
-            except Exception as e:
-                print(e)
-                return False
-        # ss.save(f'my_screenshot_{whileIndex + 1}.png')
-        return True
+                    
+                    marginX += 1
+                except Exception as e:
+                    print(e)
+                    return False
+            # ss.save(f'my_screenshot_{whileIndex + 1}.png')
+            return True
+        except Exception as e:
+            self.bot_log.error(f"Error on find_captcha_two: {e}")
+            raise ValueError("Unable to Find Captcha Two")
 
     def scroll_down(self):
         try:
@@ -398,7 +403,7 @@ class Bot:
 
         puted_heroes_to_work = False
         flag = True
-        for i in range (0,5):
+        for i in range (5):
             if(puted_heroes_to_work):
                 continue
 
@@ -468,7 +473,7 @@ class Bot:
         while time_left > 0:
             time_start = time.perf_counter()
 
-            if(self.await_and_click("./images/new-map-button.png", self.randonTime(self._medium_time/2), enableLog = False)):
+            if(self.await_and_click("./images/new-map-button.png", self.randonTime(self._medium_time/2), confidance = 0.92, enableLog = False)):
                 self.bot_log.info(f"Map time spent {str(int(map_time_spent / 60))}m")
                 self._map_time_start = time.perf_counter()
                 self.try_captcha()
@@ -505,7 +510,7 @@ class Bot:
     def run(self):
         state = 0
 
-        while 1:
+        while True:
             random.seed(time.time())
             time.sleep(self.randonTime(self._small_time))
             state = self.select_wat_to_do(state)
