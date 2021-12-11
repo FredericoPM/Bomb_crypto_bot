@@ -2,6 +2,7 @@ from numpy import true_divide
 from pyautogui import *
 import pyautogui
 import time
+import datetime
 import json
 import random
 import logging
@@ -88,7 +89,7 @@ class Bot:
     def await_and_click(self, image, await_time, confidance = _data['default_confidence']):
         await_time = int(await_time/2)
         await_time = await_time if await_time > 1 else 2
-        # self.bot_log.info(f"Await and click: {image} for {str(await_time*2)}s")
+        self.bot_log.info(f"Await and click: {image} for {str(await_time*2)}s")
         for i in range(0, await_time):
             try:
                 x, y = self.randon_center(pyautogui.locateOnScreen(image, confidence = confidance))
@@ -100,49 +101,49 @@ class Bot:
             except:
                 time.sleep(2)
         time.sleep(self.randonTime(self._small_time))
-        # self.bot_log.warning("Image not founded")
+        self.bot_log.warning("Image not founded")
         return False
 
     def search_for(self, image, await_time, confidance = _data['default_confidence']):
         await_time = int(await_time)
-        # self.bot_log.info(f"Search for image: {image} for {str(await_time)}s")
+        self.bot_log.info(f"Search for image: {image} for {str(await_time)}s")
         for i in range(0, await_time):
             try:
                 x, y = pyautogui.center(pyautogui.locateOnScreen(image, confidence = confidance))
                 time.sleep(self.randonTime(self._minimum_time))
-                # self.bot_log.info("Image founded")
+                self.bot_log.info("Image founded")
                 return x, y
             except:
                 time.sleep(1)
         time.sleep(self.randonTime(self._small_time))
-        # self.bot_log.warning("Image not founded")
+        self.bot_log.warning("Image not founded")
         return -1, -1
 
     def await_for_image(self, image, await_time, confidance = 0.9):
         await_time = int(await_time/2)
         await_time = await_time if await_time > 1 else 2
-        # self.bot_log.info(f"Awaiting {str(await_time*2)}s for {image}")
+        self.bot_log.info(f"Awaiting {str(await_time*2)}s for {image}")
         for i in range(0, await_time):
             try:
                 x, y = pyautogui.center(pyautogui.locateOnScreen(image, confidence = confidance))
                 i += await_time
-                # self.bot_log.info("Image founded")
+                self.bot_log.info("Image founded")
                 return True
             except:
                 time.sleep(2)
         time.sleep(self.randonTime(self._small_time))
-        # self.bot_log.warning("Image not founded")
+        self.bot_log.warning("Image not founded")
         return False
 
     def is_image_present(self, image, confidance = 0.9):
-        # self.bot_log.info(f"Image is present: {image}")
+        self.bot_log.info(f"Image is present: {image}")
         time.sleep(self.randonTime(self._small_time))
         try:
             founded = pyautogui.center(pyautogui.locateOnScreen(image, confidence = confidance))
-            # self.bot_log.info("Image founded")
+            self.bot_log.info("Image founded")
             return True
         except:
-            # self.bot_log.warning("Image not founded")
+            self.bot_log.warning("Image not founded")
             return False
 
     def try_to_login(self):
@@ -411,7 +412,8 @@ class Bot:
         self.await_and_click("./images/start-pve-button.png", self.randonTime(self._small_time))
 
     def await_for_new_map(self, await_time, map_expected_time_finish):
-        self.bot_log.info(f"Awaiting {str(int(await_time / 60))}m for new map")
+        endTime = (datetime.datetime.now() + datetime.timedelta(seconds=await_time)).time()
+        self.bot_log.info(f"Awaiting {str(int(await_time / 60))}m for new map " + endTime.strftime("%H:%M:%S"))
 
         time_left = await_time
         while time_left > 0:
@@ -460,7 +462,6 @@ class Bot:
             state = self.select_wat_to_do(state)
             try:
                 if(state == 1):
-                    # self.try_captcha()
                     self.refresh()
                     self.await_for_image("./images/connect-wallet-button.png", self._big_time)
                     self.try_to_login()
