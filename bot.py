@@ -17,7 +17,9 @@ class Bot:
         'default_confidence': 0.92,
         'put_to_work_trys': 45,
         'plataform': 'windows',
-        'browser': 'chrome'
+        'browser': 'chrome',
+        "console_log": True,
+        "log_level": "info"
     }
 
     _minimum_time = 0.5
@@ -37,17 +39,17 @@ class Bot:
         except Exception as e:
             with open(config_file, "w") as write_file:
                 json.dump(self._data, write_file, indent=2)
-
+        
         if(self._data['console_log']):
             self.bot_log = logging
-            self.bot_log.basicConfig(format ='[%(asctime)s] %(levelname)s - %(message)s', datefmt='%H:%M:%S', level=logging.INFO)
+            self.bot_log.basicConfig(format ='[%(asctime)s] %(levelname)s - %(message)s', datefmt='%H:%M:%S', level = logging.DEBUG if self._data['log_level'].lower() == "debug" else logging.INFO)
         else:
             log_formatter = logging.Formatter('[%(asctime)s] %(levelname)s - %(message)s', datefmt='%H:%M:%S')
             my_handler = RotatingFileHandler('./.log', mode='a', maxBytes=1024*1024, encoding=None, delay=0)
             my_handler.setFormatter(log_formatter)
-            my_handler.setLevel(logging.INFO)
+            my_handler.setLevel(logging.DEBUG if self._data['log_level'].lower() == "debug" else logging.INFO)
             self.bot_log = logging.getLogger('root')
-            self.bot_log.setLevel(logging.INFO)
+            self.bot_log.setLevel(logging.DEBUG if self._data['log_level'].lower() == "debug" else logging.INFO)
             self.bot_log.addHandler(my_handler)
 
         
@@ -85,64 +87,105 @@ class Bot:
     def randomRangeDecimal(self, value, range):
         return value + random.uniform(-range, range)
 
-    def await_and_click(self, image, await_time, confidance = _data['default_confidence']):
+    def await_and_click(self, image, await_time, confidance = _data['default_confidence'], enableLog = True):
         await_time = int(await_time/2)
         await_time = await_time if await_time > 1 else 2
-        self.bot_log.info(f"Await and click: {image} for {str(await_time*2)}s")
+
+        if(enableLog):
+            self.bot_log.info(f"Await and click: {image} for {str(await_time*2)}s")
+        else:
+            self.bot_log.debug(f"Await and click: {image} for {str(await_time*2)}s")
+
         for i in range(0, await_time):
             try:
                 x, y = self.randon_center(pyautogui.locateOnScreen(image, confidence = confidance))
                 pyautogui.moveTo(x, y)
                 time.sleep(self.randonTime(self._minimum_time))
                 pyautogui.click(x, y)
-                self.bot_log.info("Image founded and clicked")
+                if(enableLog):
+                    self.bot_log.info("Image founded and clicked")
+                else:
+                    self.bot_log.debug("Image founded and clicked")
                 return True
             except:
                 time.sleep(2)
         time.sleep(self.randonTime(self._small_time))
-        self.bot_log.warning("Image not founded")
+
+        if(enableLog):
+            self.bot_log.warning("Image not founded")
+        else:
+            self.bot_log.debug("Image not founded")
+
         return False
 
-    def search_for(self, image, await_time, confidance = _data['default_confidence']):
+    def search_for(self, image, await_time, confidance = _data['default_confidence'], enableLog = True):
         await_time = int(await_time)
-        self.bot_log.info(f"Search for image: {image} for {str(await_time)}s")
+
+        if(enableLog):
+            self.bot_log.info(f"Search for image: {image} for {str(await_time)}s")
+        else:
+            self.bot_log.debug(f"Search for image: {image} for {str(await_time)}s")
         for i in range(0, await_time):
             try:
                 x, y = pyautogui.center(pyautogui.locateOnScreen(image, confidence = confidance))
                 time.sleep(self.randonTime(self._minimum_time))
-                self.bot_log.info("Image founded")
+                if(enableLog):
+                    self.bot_log.info("Image founded")
+                else:
+                    self.bot_log.debug("Image founded")
                 return x, y
             except:
                 time.sleep(1)
         time.sleep(self.randonTime(self._small_time))
-        self.bot_log.warning("Image not founded")
+        if(enableLog):
+            self.bot_log.warning("Image not founded")
+        else:
+            self.bot_log.debug("Image not founded")
         return -1, -1
 
-    def await_for_image(self, image, await_time, confidance = 0.9):
+    def await_for_image(self, image, await_time, confidance = 0.9, enableLog = True):
         await_time = int(await_time/2)
         await_time = await_time if await_time > 1 else 2
-        self.bot_log.info(f"Awaiting {str(await_time*2)}s for {image}")
+        if(enableLog):
+            self.bot_log.info(f"Awaiting {str(await_time*2)}s for {image}")
+        else:
+            self.bot_log.debug(f"Awaiting {str(await_time*2)}s for {image}")
         for i in range(0, await_time):
             try:
                 x, y = pyautogui.center(pyautogui.locateOnScreen(image, confidence = confidance))
                 i += await_time
-                self.bot_log.info("Image founded")
+                if(enableLog):
+                    self.bot_log.info("Image founded")
+                else:
+                    self.bot_log.debug("Image founded")
                 return True
             except:
                 time.sleep(2)
         time.sleep(self.randonTime(self._small_time))
-        self.bot_log.warning("Image not founded")
+        if(enableLog):
+            self.bot_log.warning("Image not founded")
+        else:
+            self.bot_log.debug("Image not founded")
         return False
 
-    def is_image_present(self, image, confidance = 0.9):
-        self.bot_log.info(f"Image is present: {image}")
+    def is_image_present(self, image, confidance = 0.9, enableLog = True):
+        if(enableLog):
+            self.bot_log.info(f"Checking if this image is present: {image}")
+        else:
+            self.bot_log.debug(f"Checking if this image is present: {image}")
         time.sleep(self.randonTime(self._small_time))
         try:
             founded = pyautogui.center(pyautogui.locateOnScreen(image, confidence = confidance))
-            self.bot_log.info("Image founded")
+            if(enableLog):
+                self.bot_log.info(f"Image founded: {image}")
+            else:
+                self.bot_log.debug(f"Image founded: {image}")
             return True
         except:
-            self.bot_log.warning("Image not founded")
+            if(enableLog):
+                self.bot_log.warning("Image not founded")
+            else:
+                self.bot_log.debug("Image not founded")
             return False
 
     def try_to_login(self):
@@ -381,16 +424,19 @@ class Bot:
                 i = i-1 if not flag else i
                 time.sleep(self.randonTime(self._small_time))
 
+            self.bot_log.info("Searching for clickable work buttons")
             work_buttons = list(pyautogui.locateAllOnScreen('./images/work-button.png', confidence = self._data['work_button_confidence']))
+            self.bot_log.info(f"{len(work_buttons)} clickable work buttons founded")
+            self.bot_log.info("Putting heroes to work")
             if(len(work_buttons) > 0):
                 x, y = self.randon_center(work_buttons[len(work_buttons)-1], range = 0.1)
                 for i in range(0, self._data['put_to_work_trys']):
                     pyautogui.click(x, y)
                     time.sleep(self.randonTime(self._small_time))
-                    if(not self.is_image_present('./images/work-button.png', confidance=0.5)):
+                    if(not self.is_image_present('./images/work-button.png', confidance = 0.5, enableLog = False)):
                         self.await_and_click("./images/close-button.png", self.randonTime(self._medium_time))
                         time.sleep(self.randonTime(self._small_time))
-                    elif(not self.is_image_present('./images/work-button.png')):
+                    elif(not self.is_image_present('./images/work-button.png', confidance = self._data['work_button_confidence'], enableLog = False)):
                         break
 
             flag = self.await_and_click("./images/close-button.png", self.randonTime(2*self._medium_time))
@@ -398,7 +444,7 @@ class Bot:
             if(not flag):
                 self.bot_log.error("Unable to go back to menu after putting heroes to work")
                 continue
-
+            self.bot_log.info("Done putting heroes to work")
             puted_heroes_to_work = True
 
         if(not puted_heroes_to_work):
@@ -417,15 +463,15 @@ class Bot:
         while time_left > 0:
             time_start = time.perf_counter()
 
-            if(self.await_and_click("./images/new-map-button.png", self.randonTime(self._medium_time/2))):
+            if(self.await_and_click("./images/new-map-button.png", self.randonTime(self._medium_time/2), enableLog = False)):
                 self.bot_log.info(f"Map time spent {str(int(map_time_spent / 60))}m")
                 self._map_time_start = time.perf_counter()
                 self.try_captcha()
 
-            if(self.await_for_image("./images/connect-wallet-button.png", self._medium_time/2)):
+            if(self.await_for_image("./images/connect-wallet-button.png", self._medium_time/2, enableLog = False)):
                 raise ValueError("Captcha failed after 3 attempts")
 
-            if(self.await_and_click("./images/ok-button.png", self.randonTime(self._medium_time/2))):
+            if(self.await_and_click("./images/ok-button.png", self.randonTime(self._medium_time/2), enableLog = False)):
                 raise ValueError("Lost connection")
 
             map_time_spent = time.perf_counter() - self._map_time_start
