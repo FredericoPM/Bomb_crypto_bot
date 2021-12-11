@@ -246,11 +246,11 @@ class Bot:
         self.bot_log.info(f"Logged in after {str(i-1)} attempts")
         
     def try_captcha(self):
-        self.bot_log.info("Captcha flow start")
         time.sleep(self._minimum_time)
 
         window = pyautogui.locateOnScreen("./images/captcha_window.png", confidence = 0.92)
         if (window != None):
+            self.bot_log.info("Captcha flow start")
             while True:
                 try:
                     #* Window
@@ -275,11 +275,11 @@ class Bot:
                     pyautogui.mouseDown()
                     for i in range(5):
                         if (i == 1):
-                            pyautogui.move(-sliderDistance, self.randonMove(0, 4), self.randomRangeDecimal(1, 0.2), pyautogui.easeInOutQuad)
+                            pyautogui.move(-sliderDistance, self.randonMove(0, 4), self.randomRangeDecimal(0.8, 0.2), pyautogui.easeInOutQuad)
                         elif (i == 2):
-                            pyautogui.move(sliderDistance * 2, self.randonMove(0, 4), self.randomRangeDecimal(1, 0.2), pyautogui.easeInOutQuad)
+                            pyautogui.move(sliderDistance * 2, self.randonMove(0, 4), self.randomRangeDecimal(0.8, 0.2), pyautogui.easeInOutQuad)
                         else:
-                            pyautogui.move(sliderDistance, self.randonMove(0, 4), self.randomRangeDecimal(1, 0.2), pyautogui.easeInOutQuad)
+                            pyautogui.move(sliderDistance, self.randonMove(0, 4), self.randomRangeDecimal(0.8, 0.2), pyautogui.easeInOutQuad)
                         if (self.find_captcha_two(windowCaptchaTwoRegion, first, second, third, i)):
                             break
                     pyautogui.mouseUp()
@@ -396,9 +396,6 @@ class Bot:
         self.bot_log.info("Trying put heroes to work")
         time.sleep(self.randonTime(self._medium_time))
 
-        if(self.is_image_present("./images/ok-button.png", enableLog = False)):
-            raise ValueError("Lost connection")
-
         puted_heroes_to_work = False
         flag = True
         for i in range (0,5):
@@ -423,6 +420,10 @@ class Bot:
             self.try_captcha()
 
             self.await_for_image("./images/hero-selection-drag-bar.png", self._big_time)
+            
+            if(self.is_image_present("./images/ok-button.png", enableLog = False)):
+                raise ValueError("Lost connection")
+
             for i in range(0,4):
                 flag = self.scroll_down()
                 i = i-1 if not flag else i
@@ -519,7 +520,6 @@ class Bot:
                     self.await_for_new_map(self._data['map_time'], self._data['map_expected_time_finish'])
             except Exception as e:
                 self.bot_log.error(f"Workflow was broken: {e}")
-                self._map_time_start = time.perf_counter()
                 self.refresh()
                 self.await_for_image("./images/connect-wallet-button.png", self._big_time)
                 self.try_to_login()
