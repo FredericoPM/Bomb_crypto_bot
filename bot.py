@@ -518,7 +518,7 @@ class Bot:
                 else:
                     self.await_for_new_map(self._data['map_time'], self._data['map_expected_time_finish'])
             except Exception as e:
-                self.bot_log.error(f"Error during workflow: {e}")
+                self.bot_log.error(f"Workflow was broken: {e}")
                 self._map_time_start = time.perf_counter()
                 self.refresh()
                 self.await_for_image("./images/connect-wallet-button.png", self._big_time)
