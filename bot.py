@@ -3,18 +3,18 @@ from pyautogui import *
 import pyautogui
 import time
 import json
-import datetime
 import random
 import logging
 from logging.handlers import RotatingFileHandler
+from pyscreeze import Box
 
 class Bot:
     _data = {
         'speed': 1.0,
         'map_time': 2400,
         'map_expected_time_finish': 9000,
-        'work_button_confidence': 0.9,
-        'default_confidence': 0.9,
+        'work_button_confidence': 0.92,
+        'default_confidence': 0.92,
         'put_to_work_trys': 45,
         'plataform': 'windows',
         'browser': 'chrome'
@@ -66,6 +66,10 @@ class Bot:
         pyautogui.keyUp('ctrl')
         time.sleep(self.randonTime(self._big_time))
     
+    def randonMove(self, position, range = 2):
+        position += random.randint(-int(position+range), int(position+range))
+        return position
+    
     def randonTime(self, time, range = 0.15):
         time += random.randint(-int(time*range), int(time*range))
         return time
@@ -84,7 +88,7 @@ class Bot:
     def await_and_click(self, image, await_time, confidance = _data['default_confidence']):
         await_time = int(await_time/2)
         await_time = await_time if await_time > 1 else 2
-        self.bot_log.info(f"Await and click: {image} for {str(await_time*2)}s")
+        # self.bot_log.info(f"Await and click: {image} for {str(await_time*2)}s")
         for i in range(0, await_time):
             try:
                 x, y = self.randon_center(pyautogui.locateOnScreen(image, confidence = confidance))
@@ -96,49 +100,49 @@ class Bot:
             except:
                 time.sleep(2)
         time.sleep(self.randonTime(self._small_time))
-        self.bot_log.warning("Image not founded")
+        # self.bot_log.warning("Image not founded")
         return False
 
     def search_for(self, image, await_time, confidance = _data['default_confidence']):
         await_time = int(await_time)
-        self.bot_log.info(f"Search for image: {image} for {str(await_time)}s")
+        # self.bot_log.info(f"Search for image: {image} for {str(await_time)}s")
         for i in range(0, await_time):
             try:
                 x, y = pyautogui.center(pyautogui.locateOnScreen(image, confidence = confidance))
                 time.sleep(self.randonTime(self._minimum_time))
-                self.bot_log.info("Image founded")
+                # self.bot_log.info("Image founded")
                 return x, y
             except:
                 time.sleep(1)
         time.sleep(self.randonTime(self._small_time))
-        self.bot_log.warning("Image not founded")
+        # self.bot_log.warning("Image not founded")
         return -1, -1
 
     def await_for_image(self, image, await_time, confidance = 0.9):
         await_time = int(await_time/2)
         await_time = await_time if await_time > 1 else 2
-        self.bot_log.info(f"Awaiting {str(await_time*2)}s for {image}")
+        # self.bot_log.info(f"Awaiting {str(await_time*2)}s for {image}")
         for i in range(0, await_time):
             try:
                 x, y = pyautogui.center(pyautogui.locateOnScreen(image, confidence = confidance))
                 i += await_time
-                self.bot_log.info("Image founded")
+                # self.bot_log.info("Image founded")
                 return True
             except:
                 time.sleep(2)
         time.sleep(self.randonTime(self._small_time))
-        self.bot_log.warning("Image not founded")
+        # self.bot_log.warning("Image not founded")
         return False
 
     def is_image_present(self, image, confidance = 0.9):
-        self.bot_log.info(f"Image is present: {image}")
+        # self.bot_log.info(f"Image is present: {image}")
         time.sleep(self.randonTime(self._small_time))
         try:
             founded = pyautogui.center(pyautogui.locateOnScreen(image, confidence = confidance))
-            self.bot_log.info("Image founded")
+            # self.bot_log.info("Image founded")
             return True
         except:
-            self.bot_log.warning("Image not founded")
+            # self.bot_log.warning("Image not founded")
             return False
 
     def try_to_login(self):
@@ -197,72 +201,141 @@ class Bot:
                 continue
         
         self.bot_log.info(f"Logged in after {str(i-1)} attempts")
-
-    def click_and_drag(self, box, distance):
-        try:
-            x, y = self.randon_center(box, range = 0.1)
-            pyautogui.moveTo(x, y)
-            pyautogui.drag(distance, 0, self.randomRangeDecimal(1.7, 0.2), pyautogui.easeInOutQuad)
-        except Exception as e:
-            self.bot_log.error(f"Error on click_and_drag: {e}")
-            raise ValueError("Unable to move")
         
-    def find_center_captcha(self, captchaX, captchaY):
-        try:
-            self.bot_log.info("Looking for captcha (1..10s)")
-            captchaStart = 72
-            captchaX = captchaX + 120
-            captchaY = captchaY + 100
-            captchaWidth = 160
-            captchaHeight = 120
-            windowCaptchaRegion=(captchaX, captchaY, captchaWidth, captchaHeight)
-            
-            ss1 = pyautogui.screenshot(region=windowCaptchaRegion)
-            time.sleep(self.randonTime(self._minimum_time))
-            ss2 = pyautogui.screenshot(region=windowCaptchaRegion)
-
-            for y in range(0, captchaHeight, 30):
-                for x in range(0, captchaWidth, 5):
-                    pix = ss1.getpixel((x, y))
-                    pix2 = ss2.getpixel((x, y))
-                    if (pix != pix2):
-                        return captchaStart + x + 22
-            self.bot_log.info("Captcha not found (adjust formula)")
-        except Exception as e:
-            self.bot_log.error(f"Error on find_center_captcha: {e}")
-            raise ValueError("Unable to find center captcha")
-
     def try_captcha(self):
-        if (self.is_image_present("./images/captcha_button.png")):
-            self.bot_log.info("Trying to solve captcha")
+        self.bot_log.info("Captcha flow start")
+        time.sleep(self._minimum_time)
+
+        window = pyautogui.locateOnScreen("./images/captcha_window.png", confidence = 0.92)
+        if (window != None):
             while True:
                 try:
                     #* Window
-                    window = pyautogui.locateOnScreen("./images/captcha_window_start.png", confidence = 0.92)
-                    windowStart = window.left + window.width
-                    windowRegion = (windowStart, window.top, 400, window.height)
+                    windowCaptchaOneRegion = Box(window.left + 85, window.top + 150, 185, 70)
+                    windowCaptchaTwoRegion = Box(window.left + 75, window.top + 120, 420, 140)
+                    windowSliderRegion = Box(window.left, window.top + 350, 520, 80)
                     
-                    #* Captcha
-                    captchaRegionHorizontalSize = 304
-                    captchaDistance = self.find_center_captcha(windowStart, window.top)
-
                     #* Slider
-                    captchaButton = pyautogui.locateOnScreen("./images/captcha_button.png", region=windowRegion, confidence = 0.9)
+                    captchaButton = pyautogui.locateOnScreen("./images/captcha_button.png", region=windowSliderRegion, confidence = 0.9)
                     buttonX, buttonY = pyautogui.center(captchaButton)
-                    sliderMargin = buttonX - windowStart
-                    sliderSize = 400 - sliderMargin * 2
+                    sliderMargin = buttonX - window.left
+                    sliderSize = 520 - sliderMargin * 2
 
-                    #* Calculate crolled distance, click and drag
-                    sliderFactor = captchaRegionHorizontalSize / sliderSize
-                    sliderDistance = int(captchaDistance / sliderFactor)
-                    self.click_and_drag(captchaButton, sliderDistance)
+                    #* Captcha locate
+                    first, second, third = self.find_captcha(windowCaptchaOneRegion)
+                    self.bot_log.info(f"Trying find CAPTCHA: {first}{second}{third}")
+
+                    #* Calculate scrolled distance, click and move
+                    sliderDistance = int(sliderSize / 4)
+                    buttonX, buttonY = self.randon_center(captchaButton, range = 0.1)                    
+                    pyautogui.moveTo(buttonX, buttonY)
+                    pyautogui.mouseDown()
+                    for i in range(5):
+                        if (i == 1):
+                            pyautogui.move(-sliderDistance, self.randonMove(0, 4), self.randomRangeDecimal(1, 0.2), pyautogui.easeInOutQuad)
+                        elif (i == 2):
+                            pyautogui.move(sliderDistance * 2, self.randonMove(0, 4), self.randomRangeDecimal(1, 0.2), pyautogui.easeInOutQuad)
+                        else:
+                            pyautogui.move(sliderDistance, self.randonMove(0, 4), self.randomRangeDecimal(1, 0.2), pyautogui.easeInOutQuad)
+                        if (self.find_captcha_two(windowCaptchaTwoRegion, first, second, third, i)):
+                            break
+                    pyautogui.mouseUp()
 
                     if (not self.is_image_present("./images/captcha_button.png")):
+                        self.bot_log.info("Trying to solve captcha END")
                         break
                 except Exception as e:
                     self.bot_log.error(f"Error on try_captcha: {e}")
                     time.sleep(self.randonTime(self._small_time))
-            self.bot_log.info("Trying to solve captcha END")
+
+    def find_captcha(self, box: Box):
+        self.bot_log.info("Trying find CAPTCHA")
+        numbers = []
+        count = 0
+        
+        for i in range(10):
+            try:
+                number = pyautogui.locateOnScreen(f"./images/{i}.png", region=box, confidence = 0.92)
+                if (number != None): 
+                    numbers.append((i, number.left))
+                    count += 1
+                    if (count == 3):
+                        break
+            except Exception as e:
+                self.bot_log.error(f"Error on find_captcha: {e}")
+                raise ValueError("Unable to find captcha")
+
+        numbersOrderned = sorted(numbers, key=lambda elem: elem[1])
+        return [elem[0] for elem in numbersOrderned]
+    
+    def find_captcha_two(self, ssRegion: Box, first, second, third, whileIndex):
+        ss = pyautogui.screenshot(region=ssRegion)
+
+        white = (255, 255, 255)
+        brown = (186, 113, 86)
+        numbersToFind = (first, second, third)
+        numbers = (
+            [0, 106, ([10, 0, white], [35, -90, white], [55, 0, white]), 71], #100%
+            [1, 120, ([3, -110, white], [6, -110, white], [13, 8, white]), 20], #100%
+            [2, 110, ([33, -100, white], [40, 10, white], [80, 18, white]), 85], #100%
+            [3, 17, ([40, 13, white], [57, 79, white], [54, 87, white]), 70], #50%
+            [4, 28, ([7, 0, white], [40, 90, white], [50, 0, white]), 60], #100#
+            [5, 114, ([10, -9, white], [14, -82, white], [65, -19, white]), 73], #75%
+            [6, 100, ([15, -72, white], [38, 0, white], [65, -5, white]), 76], #100%
+            [7, 113, ([10, 5, white], [16, -18, white], [28, -85, white]), 20], #75%
+            [8, 99, ([3, -4, white], [4, -4, white], [57, -66, white]), 72], #50%
+            [9, 106, ([-5, -73, white], [10, -11, white], [11, 4, white]), 19] #50
+        )
+
+        marginX = 0
+        marginY = 0
+        pixelWhiteSize = 0
+        numberMinSize = 11
+        numberPosition = 0
+        numberToFind = numbersToFind[numberPosition]
+        while marginX < ssRegion.width:
+            try:
+                marginY = numbers[numberToFind][1]
+                pixels = numbers[numberToFind][2]
+                nextNumberStart = numbers[numberToFind][3]
+                
+                if (ss.getpixel((marginX, marginY)) == white):
+                    pixelWhiteSize += 1
+                    if (pixelWhiteSize == numberMinSize):
+                        marginX -= numberMinSize - 1
+                        pixelWhiteSize = 0
+                        
+                        # ss.putpixel((marginX, marginY), (0, 128, 0))
+                        localizedAllPixels = 0
+                        for pixel in pixels:
+                            pixX = pixel[0]
+                            pixY = pixel[1]
+                            color = pixel[2]
+                            if (ss.getpixel((marginX + pixX, marginY + pixY)) == color): 
+                                localizedAllPixels += 1
+                            # ss.putpixel((marginX + pixX, marginY + pixY), (255, 0, 0))
+
+                        if (localizedAllPixels == 3):
+                            marginX = marginX + nextNumberStart
+                        else:
+                            self.bot_log.info(f"#{whileIndex + 1} not find: {numberToFind}")
+                            # ss.save(f'my_screenshot_{whileIndex + 1}.png')
+                            return False
+
+                        numberPosition += 1
+                        if (numberPosition < 3):
+                            numberToFind = numbersToFind[numberPosition]
+                        else:
+                            self.bot_log.info(f"#{whileIndex + 1} find all")
+                else:
+                    pixelWhiteSize = 0
+                
+                marginX += 1
+            except Exception as e:
+                print(e)
+                return False
+        # ss.save(f'my_screenshot_{whileIndex + 1}.png')
+        return True
 
     def scroll_down(self):
         try:
@@ -387,6 +460,7 @@ class Bot:
             state = self.select_wat_to_do(state)
             try:
                 if(state == 1):
+                    # self.try_captcha()
                     self.refresh()
                     self.await_for_image("./images/connect-wallet-button.png", self._big_time)
                     self.try_to_login()
