@@ -260,7 +260,7 @@ class Bot:
                     windowSliderRegion = Box(window.left, window.top + 350, 520, 80)
                     
                     #* Slider
-                    captchaButton = pyautogui.locateOnScreen("./images/captcha_button.png", region=windowSliderRegion, confidence = 0.92)
+                    captchaButton = pyautogui.locateOnScreen("./images/captcha_button.png", region=windowSliderRegion)
                     buttonX, buttonY = pyautogui.center(captchaButton)
                     sliderMargin = buttonX - window.left
                     sliderSize = 520 - sliderMargin * 2
