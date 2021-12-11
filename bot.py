@@ -2,7 +2,6 @@ from numpy import true_divide
 from pyautogui import *
 import pyautogui
 import time
-import datetime
 import json
 import random
 import logging
@@ -412,8 +411,7 @@ class Bot:
         self.await_and_click("./images/start-pve-button.png", self.randonTime(self._small_time))
 
     def await_for_new_map(self, await_time, map_expected_time_finish):
-        endTime = (datetime.datetime.now() + datetime.timedelta(seconds=await_time)).time()
-        self.bot_log.info(f"Awaiting {str(int(await_time / 60))}m for new map " + endTime.strftime("%H:%M:%S"))
+        self.bot_log.info(f"Awaiting {str(int(await_time / 60))}m for new map")
 
         time_left = await_time
         while time_left > 0:
