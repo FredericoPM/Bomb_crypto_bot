@@ -396,6 +396,9 @@ class Bot:
         self.bot_log.info("Trying put heroes to work")
         time.sleep(self.randonTime(self._medium_time))
 
+        if(self.is_image_present("./images/ok-button.png", enableLog = False)):
+            raise ValueError("Lost connection")
+
         puted_heroes_to_work = False
         flag = True
         for i in range (0,5):
@@ -406,6 +409,7 @@ class Bot:
                 flag = self.await_and_click("./images/back-to-menu-button.png", self.randonTime(self._big_time))
             elif(self.is_image_present("./images/close-button.png")):
                 flag = self.await_and_click("./images/close-button.png", self.randonTime(self._big_time))
+
             if(not flag):
                 self.bot_log.error("Unable to go back to menu")
                 continue
@@ -471,7 +475,7 @@ class Bot:
             if(self.await_for_image("./images/connect-wallet-button.png", self._medium_time/2, enableLog = False)):
                 raise ValueError("Captcha failed after 3 attempts")
 
-            if(self.await_and_click("./images/ok-button.png", self.randonTime(self._medium_time/2), enableLog = False)):
+            if(self.is_image_present("./images/ok-button.png", enableLog = False)):
                 raise ValueError("Lost connection")
 
             map_time_spent = time.perf_counter() - self._map_time_start
