@@ -1,8 +1,8 @@
 import json
 import logging
-from logging.handlers import RotatingFileHandler
 from src.bot import Bot
 from src.utils import Utils
+from logging.handlers import RotatingFileHandler
 
 def read_config(config_file = "config.json"):
     data = {

@@ -1,9 +1,9 @@
-from pyautogui import *
-import pyautogui
 import time
 import random
-from logging.handlers import RotatingFileHandler
+import pyautogui
+from pyautogui import *
 from pyscreeze import Box
+from logging.handlers import RotatingFileHandler
 
 class Bot:
     _data = None

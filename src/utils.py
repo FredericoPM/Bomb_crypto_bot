@@ -1,8 +1,7 @@
-from pyautogui import *
-import pyautogui
 import time
 import random
-from pyscreeze import Box
+import pyautogui
+from pyautogui import *
 
 class Utils:
     _minimum_time = 0.5
