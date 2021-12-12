@@ -476,7 +476,13 @@ class Bot:
                 raise ValueError("Captcha failed after 3 attempts")
 
             if(self.is_image_present("./images/ok-button.png", enableLog = False)):
-                raise ValueError("Lost connection")
+                if(self.is_image_present("./images/idle-error.png", enableLog = False)):
+                    self.refresh()
+                    self.await_for_image("./images/connect-wallet-button.png", self._big_time)
+                    self.try_to_login()
+                    self.await_and_click("./images/start-pve-button.png", self.randonTime(2*self._medium_time))
+                else:
+                    raise ValueError("Lost connection")
 
             map_time_spent = time.perf_counter() - self._map_time_start
             time_progress = await_time - time_left
