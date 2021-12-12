@@ -3,7 +3,6 @@ import random
 import pyautogui
 from pyautogui import *
 from pyscreeze import Box
-from logging.handlers import RotatingFileHandler
 
 class Bot:
     _data = None
@@ -33,297 +32,309 @@ class Bot:
         pyautogui.press('r')
         pyautogui.keyUp('shift')
         pyautogui.keyUp('ctrl')
-        time.sleep(self._utils.randonTime(self._big_time))
+        time.sleep(self._utils.randon_time(self._big_time))
     
     def try_to_login(self):
         self._bot_log.info("Trying to login")
-        i = 1
-        pyautogui.dragTo(random.randint(90, 130), random.randint(90, 130))
-        time.sleep(self._utils.randonTime(self._small_time))
-        while(not self._utils.is_image_present("./images/start-pve-button.png")):
-            flag = self._utils.await_and_click("./images/connect-wallet-button.png", await_time = self._utils.randonTime(3*self._medium_time))
-            if(not flag):
-                self._bot_log.error("Error while trying to connect")
+        self._utils.random_move(-300,  0)
+        self._utils.random_sleep(self._small_time)
+
+        attempts = 1
+        while (not self._utils.is_image_present("./images/start-pve-button.png", tag = "PVE")):
+
+            if (self._utils.await_and_click("./images/connect-wallet-button.png", await_time = 2*self._medium_time, tag = "CONNECT") == None):
+                self._bot_log.error("Error while trying connect")
                 self.refresh()
                 continue
 
             self.try_captcha()
 
             self._bot_log.info("Trying to sign metamask")
-            if(self._data['plataform'].lower() == 'windows'):
-                flag = self._utils.await_and_click("./images/sing-button-windows.png", await_time = self._utils.randonTime(3*self._medium_time))
-                if(not flag):
+            if (self._data['plataform'].lower() == 'windows'):
+                if (self._utils.await_and_click("./images/sing-button-windows.png", await_time = 2*self._medium_time, tag = "SIGN") == None):
                     self._bot_log.error("Error while trying to connect")
                     self.refresh()
                     continue
             else:
                 if(self._data['browser'].lower() == 'vivald'):
-                    flag = self._utils.await_and_click("./images/sing-button-linux-vivald.png", await_time = self._utils.randonTime(2*self._medium_time))
+                    box = self._utils.await_and_click("./images/sing-button-linux-vivald.png", await_time = 2*self._medium_time, tag = "SIGN")
                 else:
-                    flag = self._utils.await_and_click("./images/sing-button-linux-chrome.png", await_time = self._utils.randonTime(2*self._medium_time))
-                if(not flag):
+                    box = self._utils.await_and_click("./images/sing-button-linux-chrome.png", await_time = 2*self._medium_time, tag = "SIGN")
+
+                if(box == None):
                     try:
                         if(self._data['browser'].lower() == 'vivald'):
-                            x, y = self._utils.search_for("./images/metamask_sign_tab_vivald.png", await_time = self._utils.randonTime(2*self._medium_time))
+                            x, y = self._utils.search_for("./images/metamask_sign_tab_vivald.png", await_time = self._utils.randon_time(2*self._medium_time))
                         else:
-                            x, y = self._utils.search_for("./images/metamask_sign_tab_chrome.png", await_time = self._utils.randonTime(*self._medium_time))
+                            x, y = self._utils.search_for("./images/metamask_sign_tab_chrome.png", await_time = self._utils.randon_time(*self._medium_time))
                         if(x == -1):
                             raise ValueError("metamask_sign_tab not founded")
                         pyautogui.click(x, y)
-                        time.sleep(self._utils.randonTime(self._small_time))
+                        time.sleep(self._utils.randon_time(self._small_time))
                         if(self._data['browser'].lower() == 'vivald'):
-                            flag = self._utils.await_and_click("./images/sing-button-linux-vivald.png", await_time = self._utils.randonTime(2*self._medium_time))
+                            flag = self._utils.await_and_click("./images/sing-button-linux-vivald.png", await_time = self._utils.randon_time(2*self._medium_time))
                         else:
-                            flag = self._utils.await_and_click("./images/sing-button-linux-chrome.png", await_time = self._utils.randonTime(2*self._medium_time))
-                        time.sleep(self._utils.randonTime(self._small_time))
+                            flag = self._utils.await_and_click("./images/sing-button-linux-chrome.png", await_time = self._utils.randon_time(2*self._medium_time))
+                        time.sleep(self._utils.randon_time(self._small_time))
                         pyautogui.click(x, y)
-                        time.sleep(self._utils.randonTime(self._small_time))
+                        time.sleep(self._utils.randon_time(self._small_time))
                     except Exception as e:
                         self._bot_log.error(f"Error while trying to connect: {e}")
                         self.refresh()
                         continue
 
-            flag = self._utils.await_for_image("./images/start-pve-button.png", 3*self._big_time)
-            i+=1
-            if(not flag):
-                self._bot_log.error("Error while trying to connect")
+            attempts += 1
+            if (self._utils.await_for_image("./images/start-pve-button.png", await_time = 5*self._big_time, tag = "PVE") == None):
+                self._bot_log.error("Error while trying connect")
                 self.refresh()
                 continue
-        
-        self._bot_log.info(f"Logged in after {str(i-1)} attempts")
+
+        self._bot_log.info(f"Logged in after {str(attempts-1)} attempts")
         
     def try_captcha(self):
-        self._bot_log.info("Captcha flow start")
-        time.sleep(self._minimum_time)
-
-        window = pyautogui.locateOnScreen("./images/captcha_window.png", confidence = 0.92)
+        window = self._utils.await_for_image("./images/captcha_window.png", await_time = self._minimum_time, confidence = 0.92, tag = "WINDOW")
         if (window != None):
-            while True:
-                try:
+            self._bot_log.info("Captcha START")
+            try:
+                while True:
                     #* Window
                     windowCaptchaOneRegion = Box(window.left + 85, window.top + 150, 185, 70)
                     windowCaptchaTwoRegion = Box(window.left + 75, window.top + 120, 420, 140)
                     windowSliderRegion = Box(window.left, window.top + 350, 520, 80)
-                    
+
                     #* Slider
-                    captchaButton = pyautogui.locateOnScreen("./images/captcha_button.png", region=windowSliderRegion, confidence = 0.9)
+                    captchaButton = self._utils.await_for_image("./images/captcha_button.png", await_time = self._small_time, region = windowSliderRegion, tag = "SLIDER")
                     buttonX, buttonY = pyautogui.center(captchaButton)
                     sliderMargin = buttonX - window.left
                     sliderSize = 520 - sliderMargin * 2
 
                     #* Captcha locate
                     first, second, third = self.find_captcha(windowCaptchaOneRegion)
-                    self._bot_log.info(f"Trying find CAPTCHA: {first}{second}{third}")
+                    self._bot_log.info(f"Trying find captcha: {first}{second}{third}")
 
                     #* Calculate scrolled distance, click and move
+                    self._utils.random_moveTo(captchaButton, range = 0.1)
                     sliderDistance = int(sliderSize / 4)
-                    buttonX, buttonY = self._utils.randon_center(captchaButton, range = 0.1)                    
-                    pyautogui.moveTo(buttonX, buttonY)
+
                     pyautogui.mouseDown()
                     for i in range(5):
                         if (i == 1):
-                            pyautogui.move(-sliderDistance, self._utils.randonMove(0, 4), self._utils.randomRangeDecimal(1, 0.2), pyautogui.easeInOutQuad)
+                            self._utils.random_move(-sliderDistance, 0, time = 0.7)
                         elif (i == 2):
-                            pyautogui.move(sliderDistance * 2, self._utils.randonMove(0, 4), self._utils.randomRangeDecimal(1, 0.2), pyautogui.easeInOutQuad)
+                            self._utils.random_move(sliderDistance * 2, 0, time = 0.7)
                         else:
-                            pyautogui.move(sliderDistance, self._utils.randonMove(0, 4), self._utils.randomRangeDecimal(1, 0.2), pyautogui.easeInOutQuad)
+                            self._utils.random_move(sliderDistance, 0, time = 0.7)
                         if (self.find_captcha_two(windowCaptchaTwoRegion, first, second, third, i)):
                             break
                     pyautogui.mouseUp()
 
-                    if (not self._utils.is_image_present("./images/captcha_button.png")):
-                        self._bot_log.info("Trying to solve captcha END")
+                    if (not self._utils.is_image_present("./images/captcha_button.png", tag = "SLIDER")):                        
+                        self._bot_log.info("Captcha END")
                         break
-                except Exception as e:
-                    self._bot_log.error(f"Error on try_captcha: {e}")
-                    time.sleep(self._utils.randonTime(self._small_time))
+            except Exception as e:
+                self._bot_log.error(f"Error on try_captcha: {e}")
+                raise ValueError("Unable to Try Captcha")
 
     def find_captcha(self, box: Box):
-        self._bot_log.info("Trying find CAPTCHA")
-        numbers = []
-        count = 0
-        
-        for i in range(10):
-            try:
+        self._bot_log.info("Trying find captcha")
+        try:
+            numbers = []
+            count = 0
+            for i in range(10):
                 number = pyautogui.locateOnScreen(f"./images/{i}.png", region=box, confidence = 0.92)
                 if (number != None): 
                     numbers.append((i, number.left))
                     count += 1
                     if (count == 3):
                         break
-            except Exception as e:
-                self._bot_log.error(f"Error on find_captcha: {e}")
-                raise ValueError("Unable to find captcha")
-
-        numbersOrderned = sorted(numbers, key=lambda elem: elem[1])
-        return [elem[0] for elem in numbersOrderned]
+            numbersOrderned = sorted(numbers, key=lambda elem: elem[1])
+            return [elem[0] for elem in numbersOrderned]
+        except Exception as e:
+            self._bot_log.error(f"Error on find_captcha: {e}")
+            raise ValueError("Unable to Find Captcha")
     
-    def find_captcha_two(self, ssRegion: Box, first, second, third, whileIndex):
-        ss = pyautogui.screenshot(region=ssRegion)
+    def find_captcha_two(self, box: Box, first, second, third, whileIndex):
+        try:
+            ss = pyautogui.screenshot(region = box)
 
-        white = (255, 255, 255)
-        brown = (186, 113, 86)
-        numbersToFind = (first, second, third)
-        numbers = (
-            [0, 106, ([10, 0, white], [35, -90, white], [55, 0, white]), 71], #100%
-            [1, 120, ([3, -110, white], [6, -110, white], [13, 8, white]), 20], #100%
-            [2, 110, ([33, -100, white], [40, 10, white], [80, 18, white]), 85], #100%
-            [3, 17, ([40, 13, white], [57, 79, white], [54, 87, white]), 70], #50%
-            [4, 28, ([7, 0, white], [40, 90, white], [50, 0, white]), 60], #100#
-            [5, 114, ([10, -9, white], [14, -82, white], [65, -19, white]), 73], #75%
-            [6, 100, ([15, -72, white], [38, 0, white], [65, -5, white]), 76], #100%
-            [7, 113, ([10, 5, white], [16, -18, white], [28, -85, white]), 20], #75%
-            [8, 99, ([3, -4, white], [4, -4, white], [57, -66, white]), 72], #50%
-            [9, 106, ([-5, -73, white], [10, -11, white], [11, 4, white]), 19] #50
-        )
+            white = (255, 255, 255)
+            brown = (186, 113, 86)
+            numbersToFind = (first, second, third)
+            numbers = (
+                [0, 106, ([10, 0, white], [35, -90, white], [55, 0, white]), 71], #100%
+                [1, 120, ([3, -110, white], [6, -110, white], [13, 8, white]), 20], #100%
+                [2, 110, ([33, -100, white], [40, 10, white], [80, 18, white]), 85], #100%
+                [3, 17, ([40, 13, white], [57, 79, white], [54, 87, white]), 70], #50%
+                [4, 28, ([7, 0, white], [40, 90, white], [50, 0, white]), 60], #90#
+                [5, 114, ([10, -9, white], [14, -82, white], [65, -19, white]), 73], #75%
+                [6, 100, ([15, -72, white], [38, 0, white], [65, -5, white]), 76], #100%
+                [7, 113, ([10, 5, white], [16, -18, white], [28, -85, white]), 20], #75%
+                [8, 99, ([3, -4, white], [4, -4, white], [57, -66, white]), 72], #50%
+                [9, 106, ([-5, -73, white], [10, -11, white], [11, 4, white]), 19] #50
+            )
 
-        marginX = 0
-        marginY = 0
-        pixelWhiteSize = 0
-        numberMinSize = 11
-        numberPosition = 0
-        numberToFind = numbersToFind[numberPosition]
-        while marginX < ssRegion.width:
-            try:
-                marginY = numbers[numberToFind][1]
-                pixels = numbers[numberToFind][2]
-                nextNumberStart = numbers[numberToFind][3]
-                
-                if (ss.getpixel((marginX, marginY)) == white):
-                    pixelWhiteSize += 1
-                    if (pixelWhiteSize == numberMinSize):
-                        marginX -= numberMinSize - 1
+            marginX = 0
+            marginY = 0
+            pixelWhiteSize = 0
+            numberMinSize = 11
+            numberPosition = 0
+            numberToFind = numbersToFind[numberPosition]
+            while (marginX < box.width):
+                try:
+                    marginY = numbers[numberToFind][1]
+                    pixels = numbers[numberToFind][2]
+                    nextNumberStart = numbers[numberToFind][3]
+                    if (ss.getpixel((marginX, marginY)) == white):
+
+                        pixelWhiteSize += 1
+                        if (pixelWhiteSize == numberMinSize):
+                            marginX -= numberMinSize - 1
+                            pixelWhiteSize = 0
+                            # ss.putpixel((marginX, marginY), (0, 128, 0))
+
+                            localizedAllPixels = 0
+                            for pixel in pixels:
+                                pixX = pixel[0]
+                                pixY = pixel[1]
+                                color = pixel[2]
+                                if (ss.getpixel((marginX + pixX, marginY + pixY)) == color): 
+                                    localizedAllPixels += 1
+                                # ss.putpixel((marginX + pixX, marginY + pixY), (255, 0, 0))
+
+                            if (localizedAllPixels == 3):
+                                marginX = marginX + nextNumberStart
+                            else:
+                                self._bot_log.info(f"#{whileIndex + 1} not find: {numberToFind}")
+                                # ss.save(f'my_screenshot_{whileIndex + 1}.png')
+                                return False
+
+                            numberPosition += 1
+                            if (numberPosition < 3):
+                                numberToFind = numbersToFind[numberPosition]
+                            else:
+                                self._bot_log.info(f"#{whileIndex + 1} find all")
+                    else:
                         pixelWhiteSize = 0
-                        
-                        # ss.putpixel((marginX, marginY), (0, 128, 0))
-                        localizedAllPixels = 0
-                        for pixel in pixels:
-                            pixX = pixel[0]
-                            pixY = pixel[1]
-                            color = pixel[2]
-                            if (ss.getpixel((marginX + pixX, marginY + pixY)) == color): 
-                                localizedAllPixels += 1
-                            # ss.putpixel((marginX + pixX, marginY + pixY), (255, 0, 0))
 
-                        if (localizedAllPixels == 3):
-                            marginX = marginX + nextNumberStart
-                        else:
-                            self._bot_log.info(f"#{whileIndex + 1} not find: {numberToFind}")
-                            # ss.save(f'my_screenshot_{whileIndex + 1}.png')
-                            return False
-
-                        numberPosition += 1
-                        if (numberPosition < 3):
-                            numberToFind = numbersToFind[numberPosition]
-                        else:
-                            self._bot_log.info(f"#{whileIndex + 1} find all")
-                else:
-                    pixelWhiteSize = 0
-                
-                marginX += 1
-            except Exception as e:
-                print(e)
-                return False
-        # ss.save(f'my_screenshot_{whileIndex + 1}.png')
-        return True
+                    marginX += 1
+                except Exception as e:
+                    print(e)
+                    return False
+            # ss.save(f'my_screenshot_{whileIndex + 1}.png')
+            return True
+        except Exception as e:
+            self._bot_log.error(f"Error on find_captcha_two: {e}")
+            raise ValueError("Unable to Find Captcha Two")
 
     def scroll_down(self):
         try:
             drag_bars = list(pyautogui.locateAllOnScreen("./images/hero-selection-drag-bar.png", confidence = 0.8))
-            x, y = self._utils.randon_center(drag_bars[len(drag_bars)-1])
-            time.sleep(self._utils.randonTime(self._minimum_time))
-            pyautogui.moveTo(x, y)
-            time.sleep(self._utils.randonTime(self._minimum_time))
-            pyautogui.dragTo(x, random.randint(y-300, y-180), self._utils.randonTime(self._minimum_time), button='left')
+            drag = drag_bars[len(drag_bars)-1]
+            self._utils.random_moveTo(drag)
+            self._utils.random_drag(0, -220, time = 0.4)
+            self._utils.random_sleep(self._minimum_time)
             return True
         except Exception as e:
+            self._bot_log.error(f"Error on scroll_down: {e}")
             return False
 
     def put_heroes_to_work(self):
         self._bot_log.info("Trying put heroes to work")
-        time.sleep(self._utils.randonTime(self._medium_time))
-
-        if(self._utils.is_image_present("./images/ok-button.png", enable_log = False)):
-            raise ValueError("Lost connection")
+        self._utils.random_sleep(self._medium_time)
 
         puted_heroes_to_work = False
-        flag = True
-        for i in range (0,5):
-            if(puted_heroes_to_work):
-                continue
+        stopFlow = False
 
-            if(self._utils.is_image_present("./images/back-to-menu-button.png") and not self._utils.is_image_present("./images/hero-selection-drag-bar.png")):
-                flag = self._utils.await_and_click("./images/back-to-menu-button.png", self._utils.randonTime(self._big_time))
-            elif(self._utils.is_image_present("./images/close-button.png")):
-                flag = self._utils.await_and_click("./images/close-button.png", self._utils.randonTime(self._big_time))
+        for i in range (5):
 
-            if(not flag):
+            #* PVE screen
+            if (self._utils.is_image_present("./images/back-to-menu-button.png", tag = "BACK") and not self._utils.is_image_present("./images/hero-selection-drag-bar.png", tag = "HERO")):
+                stopFlow = self._utils.await_and_click("./images/back-to-menu-button.png", await_time = self._big_time, tag = "BACK") == None
+            #* Heroes screen
+            elif (self._utils.is_image_present("./images/close-button.png", tag = "CLOSE")):
+                stopFlow = self._utils.await_and_click("./images/close-button.png", await_time = self._big_time, tag = "CLOSE") == None
+
+            if (stopFlow):
                 self._bot_log.error("Unable to go back to menu")
                 continue
 
-            if(not self._utils.is_image_present("./images/hero-selection-drag-bar.png")):
-                flag = self._utils.await_and_click("./images/heroes-menu-button.png", self._utils.randonTime(self._big_time))
-            if(not flag):
+            #* Menu screen
+            if (not self._utils.is_image_present("./images/hero-selection-drag-bar.png", tag = "HERO")):
+                stopFlow = self._utils.await_and_click("./images/heroes-menu-button.png", await_time = self._big_time, tag = "HEROES") == None
+            if (stopFlow):
                 self._bot_log.error("heroes-menu-button.png not found")
                 continue
 
             self.try_captcha()
 
-            self._utils.await_for_image("./images/hero-selection-drag-bar.png", self._big_time)
-            for i in range(0,4):
+            self._utils.await_for_image("./images/hero-selection-drag-bar.png", await_time = self._big_time, tag = "HERO")
+
+            if (self._utils.await_and_click("./images/ok-button.png", await_time = self._small_time, tag = "OK")):
+                self._utils.random_sleep(self._medium_time)
+                return
+
+            for i in range(3):
                 flag = self.scroll_down()
                 i = i-1 if not flag else i
-                time.sleep(self._utils.randonTime(self._small_time))
-
+            
             self._bot_log.info("Searching for clickable work buttons")
             work_buttons = list(pyautogui.locateAllOnScreen('./images/work-button.png', confidence = self._data['work_button_confidence']))
             self._bot_log.info(f"{len(work_buttons)} clickable work buttons founded")
+            
             self._bot_log.info("Putting heroes to work")
-            if(len(work_buttons) > 0):
-                x, y = self._utils.randon_center(work_buttons[len(work_buttons)-1], range = 0.1)
+            if (len(work_buttons) > 0):
+                box = work_buttons[len(work_buttons)-1]
+                x, y = self._utils.random_moveTo(box)
+
                 for i in range(0, self._data['put_to_work_trys']):
-                    pyautogui.click(x, y)
-                    time.sleep(self._utils.randonTime(self._small_time))
-                    if(not self._utils.is_image_present('./images/work-button.png', confidence = 0.5, enable_log = False)):
-                        self._utils.await_and_click("./images/close-button.png", self._utils.randonTime(self._medium_time))
-                        time.sleep(self._utils.randonTime(self._small_time))
-                    elif(not self._utils.is_image_present('./images/work-button.png', confidence = self._data['work_button_confidence'], enable_log = False)):
+                    self._utils.click(x, y)
+                    if (not self._utils.is_image_present('./images/work-button.png', confidence = 0.5, tag = "WORK")):
+                        self._utils.await_and_click("./images/close-button.png", await_time = self._medium_time, tag = "CLOSE")
+                    elif (not self._utils.is_image_present('./images/work-button.png', confidence = self._data['work_button_confidence'], tag = "WORK")):
                         break
 
-            flag = self._utils.await_and_click("./images/close-button.png", self._utils.randonTime(2*self._medium_time))
-            flag = self._utils.await_and_click("./images/start-pve-button.png", self._utils.randonTime(2*self._medium_time))
-            if(not flag):
+            stopFlow = self._utils.await_and_click("./images/close-button.png", await_time = 2*self._medium_time, tag = "CLOSE") == None
+            stopFlow = self._utils.await_and_click("./images/start-pve-button.png", await_time = 2*self._medium_time, tag = "PVE") == None
+
+            if (stopFlow):
                 self._bot_log.error("Unable to go back to menu after putting heroes to work")
                 continue
+
             self._bot_log.info("Done putting heroes to work")
             puted_heroes_to_work = True
+            break
 
-        if(not puted_heroes_to_work):
+        if (not puted_heroes_to_work):
             raise ValueError("Unable to put heroes to work")
 
     def reset_map(self):
         self._bot_log.info("Redistributing heroes")
-        self._utils.await_and_click("./images/back-to-menu-button.png", self._utils.randonTime(self._small_time))
-        time.sleep(self._utils.randonTime(self._small_time))
-        self._utils.await_and_click("./images/start-pve-button.png", self._utils.randonTime(self._small_time))
+        self._utils.await_and_click("./images/back-to-menu-button.png", self._small_time, tag = "BACK")
+        self._utils.await_and_click("./images/start-pve-button.png", self._small_time, tag = "PVE")
 
     def await_for_new_map(self, await_time, map_expected_time_finish):
-        self._bot_log.info(f"Awaiting {str(int(await_time / 60))}m for new map")
-
+        self.bot_log.info(f"Awaiting {str(int(await_time / 60))}m for new map")
         time_left = await_time
+        
         while time_left > 0:
             time_start = time.perf_counter()
 
-            if(self._utils.await_and_click("./images/new-map-button.png", self._utils.randonTime(self._medium_time/2), enable_log = False)):
-                self._bot_log.info(f"Map time spent {str(int(map_time_spent / 60))}m")
+            if(self.await_and_click("./images/new-map-button.png", self.randonTime(self._medium_time/2), enableLog = False)):
+                self.bot_log.info(f"Map time spent {str(int(map_time_spent / 60))}m")
                 self._map_time_start = time.perf_counter()
                 self.try_captcha()
 
-            if(self._utils.await_for_image("./images/connect-wallet-button.png", self._medium_time/2, enable_log = False)):
+            if(self.await_for_image("./images/connect-wallet-button.png", self._medium_time/2, enableLog = False)):
                 raise ValueError("Captcha failed after 3 attempts")
 
-            if(self._utils.is_image_present("./images/ok-button.png", enable_log = False)):
-                raise ValueError("Lost connection")
+            if(self.is_image_present("./images/ok-button.png", enableLog = False)):
+                if(self.is_image_present("./images/idle-error.png", enableLog = False)):
+                    self.refresh()
+                    self.await_for_image("./images/connect-wallet-button.png", self._big_time)
+                    self.try_to_login()
+                    self.await_and_click("./images/start-pve-button.png", self.randonTime(2*self._medium_time))
+                else:
+                    raise ValueError("Lost connection")
 
             map_time_spent = time.perf_counter() - self._map_time_start
             time_progress = await_time - time_left
@@ -339,11 +350,11 @@ class Bot:
     #* 2 - Put heroes to work
     #* 3 - Await for a new map
     def select_wat_to_do(self, last_action):
-        if(last_action == 0 and not self._utils.is_image_present("./images/start-pve-button.png") and not self._utils.is_image_present("./images/back-to-menu-button.png") and not self._utils.is_image_present("./images/close-button.png")):
+        if(last_action == 0 and not self._utils.is_image_present("./images/start-pve-button.png", tag = "PVE") and not self._utils.is_image_present("./images/back-to-menu-button.png", tag = "BACK") and not self._utils.is_image_present("./images/close-button.png", tag = "CLOSE")):
             return 1
         elif(last_action == 0 or last_action == 1 or last_action == 3):
             return 2
-        elif(last_action == 2 and self._utils.is_image_present("./images/back-to-menu-button.png")):
+        elif(last_action == 2 and self._utils.is_image_present("./images/back-to-menu-button.png", tag = "BACK")):
             return 3
         else:
             return 1
@@ -351,14 +362,14 @@ class Bot:
     def run(self):
         state = 0
 
-        while 1:
+        while True:
             random.seed(time.time())
-            time.sleep(self._utils.randonTime(self._small_time))
+            self._utils.random_sleep(self._medium_time)
             state = self.select_wat_to_do(state)
             try:
                 if(state == 1):
                     self.refresh()
-                    self._utils.await_for_image("./images/connect-wallet-button.png", self._big_time)
+                    self._utils.await_for_image("./images/connect-wallet-button.png", await_time = self._big_time, tag = "CONNECT")
                     self.try_to_login()
                 elif(state == 2):
                     self.put_heroes_to_work()
@@ -366,8 +377,7 @@ class Bot:
                     self.await_for_new_map(self._data['map_time'], self._data['map_expected_time_finish'])
             except Exception as e:
                 self._bot_log.error(f"Workflow was broken: {e}")
-                self._map_time_start = time.perf_counter()
                 self.refresh()
-                self._utils.await_for_image("./images/connect-wallet-button.png", self._big_time)
+                self._utils.await_for_image("./images/connect-wallet-button.png", await_time = self._big_time, tag = "CONNECT")
                 self.try_to_login()
                 state = 1

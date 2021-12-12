@@ -2,6 +2,7 @@ import json
 import logging
 from src.bot import Bot
 from src.utils import Utils
+from src.multi_bot import Multi_bot
 from logging.handlers import RotatingFileHandler
 
 def read_config(config_file = "config.json"):
@@ -47,10 +48,23 @@ else:
     log.setLevel(logging.DEBUG if data['log_level'].lower() == "debug" else logging.INFO)
     log.addHandler(my_handler)
 
-bot = Bot(data, log, minimum_time, small_time, medium_time, big_time, Utils(log, minimum_time, small_time, medium_time, big_time, data['default_confidence']))
-while 1:
-    try:
-        bot.run()
-    except Exception as e:
-        bot = Bot(data, log, minimum_time, small_time, medium_time, big_time, Utils(log, minimum_time, small_time, medium_time, big_time, data['default_confidence']))
-        log.error(f"Bot breaking error: {e}")
+
+multi_bot = Multi_bot(
+    data,
+    log,
+    minimum_time, 
+    small_time, 
+    medium_time, 
+    big_time, 
+    Utils(log, minimum_time, small_time, medium_time, big_time, data['default_confidence']),
+    "C:\Program Files\Google\Chrome\Application\chrome.exe"
+)
+multi_bot.run()
+# bot = Bot(data, log, minimum_time, small_time, medium_time, big_time, Utils(log, minimum_time, small_time, medium_time, big_time, data['default_confidence']))
+# while 1:
+#     try:
+#         bot.run()
+#     except Exception as e:
+#         bot = Bot(data, log, minimum_time, small_time, medium_time, big_time, Utils(log, minimum_time, small_time, medium_time, big_time, data['default_confidence']))
+#         log.error(f"Bot breaking error: {e}")
+
