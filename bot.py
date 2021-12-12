@@ -87,6 +87,7 @@ class Bot:
         acceleration = self.random_range_decimal(time)
         pyautogui.moveTo(x, y, acceleration, pyautogui.easeInOutQuad)
         self.random_sleep(self._minimum_time)
+        return x, y
         
     #* A partir da posição atual
     def random_drag(self, distanceX, distanceY, range = 5, time = 0.5):
@@ -95,8 +96,11 @@ class Bot:
         acceleration = self.random_range_decimal(time)
         pyautogui.drag(distanceX, distanceY, acceleration, pyautogui.easeInOutQuad)
 
-    def click(self):
-        x, y = pyautogui.position()
+    def click(self, x, y, time = 0.5):
+        actualX, actualY = pyautogui.position()
+        if (actualX != x or actualY != y):
+            acceleration = self.random_range_decimal(time)
+            pyautogui.moveTo(x, y, acceleration, pyautogui.easeInOutQuad)
         pyautogui.click(x, y)
         self.random_sleep(self._minimum_time)
         
@@ -138,8 +142,8 @@ class Bot:
         while (self.is_time_out(time_start, await_time) == False):
             box = pyautogui.locateOnScreen(image, confidence = confidence)
             if (box != None):
-                self.random_moveTo(box)
-                self.click()
+                x, y = self.random_moveTo(box)
+                self.click(x, y)
                 self.log_info(f"{tag} founded and clicked", enableLog)
                 return box
             else:
@@ -423,10 +427,10 @@ class Bot:
             self.log_info("Putting heroes to work")
             if (len(work_buttons) > 0):
                 box = work_buttons[len(work_buttons)-1]
-                self.random_moveTo(box)
+                x, y = self.random_moveTo(box)
 
                 for i in range(0, self._data['put_to_work_trys']):
-                    self.click()
+                    self.click(x, y)
                     if (not self.is_image_present('./images/work-button.png', confidence = 0.5, enableLog = False, tag = "WORK")):
                         self.await_and_click("./images/close-button.png", await_time = self._medium_time, tag = "CLOSE")
                     elif (not self.is_image_present('./images/work-button.png', confidence = self._data['work_button_confidence'], enableLog = False, tag = "WORK")):
