@@ -7,6 +7,6 @@
   "put_to_work_trys": 45,
   "plataform": "windows",
   "browser": "chrome",
-  "console_log": true,
+  "console_log": false,
   "log_level": "info"
 }
