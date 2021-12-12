@@ -1,5 +1,5 @@
 {
-  "speed": 1,
+  "speed": 1.0,
   "map_time": 2400,
   "map_expected_time_finish": 9000,
   "work_button_confidence": 0.92,
