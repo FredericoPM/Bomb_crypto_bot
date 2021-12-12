@@ -66,14 +66,6 @@ class Bot:
         pyautogui.keyUp('ctrl')
         self.random_sleep(self._big_time)
         
-    def log_debug(self, message, enableLog = True):
-        if (enableLog):
-            self.bot_log.debug(message)
-    
-    def log_info(self, message, enableLog = True):
-        if (enableLog):
-            self.bot_log.info(message)
-
     #* A partir da posição atual
     def random_move(self, distanceX, distanceY, range = 5, time = 0.5):
         distanceX = self.random_position(distanceX, range)
@@ -135,7 +127,9 @@ class Bot:
         return  time.perf_counter() - time_start
 
     def await_and_click(self, image, await_time, confidence = _data['default_confidence'], enableLog = True, tag = "Image"):
-        self.log_debug(f"Await and click: {image} for {str(await_time)}s", enableLog)
+        if (enableLog):
+            self.bot_log.debug(f"Await and click: {image} for {str(await_time)}s")
+
         time.sleep(self._minimum_time)
         time_start = time.perf_counter()
 
@@ -144,39 +138,48 @@ class Bot:
             if (box != None):
                 x, y = self.random_moveTo(box)
                 self.click(x, y)
-                self.log_info(f"{tag} founded and clicked", enableLog)
+                if (enableLog):
+                    self.bot_log.info(f"{tag} founded and clicked")
                 return box
             else:
                 time.sleep(2)
 
-        self.log_debug(f"{tag} not founded", enableLog)
+        if (enableLog):
+            self.bot_log.debug(f"{tag} not founded")
+ 
         return None
 
     def await_for_image(self, image, await_time, region: Box = None, confidence = _data['default_confidence'], enableLog = True, tag = "Image"):
-        self.log_debug(f"Awaiting {str(await_time)}s for {image}", enableLog)
+        if (enableLog):
+            self.bot_log.debug(f"Awaiting {str(await_time)}s for {image}")
         time.sleep(self._minimum_time)
         time_start = time.perf_counter()
 
         while (self.is_time_out(time_start, await_time) == False):
             box = pyautogui.locateOnScreen(image, region=region, confidence = confidence)
             if (box != None):
-                self.log_info(f"{tag} founded", enableLog)
+                if (enableLog):
+                    self.bot_log.info(f"{tag} founded")
                 return box
             else:
                 time.sleep(2)
 
         self.random_sleep(self._small_time)
-        self.log_debug(f"{tag} not founded", enableLog)
+        if (enableLog):
+            self.bot_log.debug(f"{tag} not founded")
         return None
 
     def is_image_present(self, image, confidence = _data['default_confidence'], enableLog = True, tag = "Image"):
-        self.log_debug(f"Checking if image is present: {image}", enableLog)
+        if (enableLog):
+            self.bot_log.debug(f"Checking if image is present: {image}")
         time.sleep(self._minimum_time)
         if (pyautogui.locateOnScreen(image, confidence = confidence) != None):
-            self.log_info(f"{tag} founded", enableLog)
+            if (enableLog):
+                self.bot_log.info(f"{tag} founded")
             return True
         else:
-            self.log_debug(f"{tag} not founded", enableLog)
+            if (enableLog):
+                self.bot_log.debug(f"{tag} not founded")
             return False
 
     def try_to_login(self):
@@ -194,7 +197,7 @@ class Bot:
 
             self.try_captcha()
 
-            self.log_info("Trying to sign metamask")
+            self.bot_log.info("Trying to sign metamask")
             if (self._data['plataform'].lower() == 'windows'):
                 if (self.await_and_click("./images/sing-button-windows.png", await_time = 2*self._medium_time, tag = "SIGN") == None):
                     self.bot_log.error("Error while trying to connect")
@@ -232,12 +235,12 @@ class Bot:
                 self.refresh()
                 continue
 
-        self.log_info(f"Logged in after {str(attempts-1)} attempts")
+        self.bot_log.info(f"Logged in after {str(attempts-1)} attempts")
         
     def try_captcha(self):
         window = self.await_for_image("./images/captcha_window.png", await_time = self._minimum_time, confidence = 0.92, tag = "WINDOW")
         if (window != None):
-            self.log_info("Captcha START")
+            self.bot_log.info("Captcha START")
             try:
                 while True:
                     #* Window
@@ -253,7 +256,7 @@ class Bot:
 
                     #* Captcha locate
                     first, second, third = self.find_captcha(windowCaptchaOneRegion)
-                    self.log_info(f"Trying find captcha: {first}{second}{third}")
+                    self.bot_log.info(f"Trying find captcha: {first}{second}{third}")
 
                     #* Calculate scrolled distance, click and move
                     self.random_moveTo(captchaButton, range = 0.1)
@@ -272,14 +275,14 @@ class Bot:
                     pyautogui.mouseUp()
 
                     if (not self.is_image_present("./images/captcha_button.png", tag = "SLIDER")):                        
-                        self.log_info("Captcha END")
+                        self.bot_log.info("Captcha END")
                         break
             except Exception as e:
                 self.bot_log.error(f"Error on try_captcha: {e}")
                 raise ValueError("Unable to Try Captcha")
 
     def find_captcha(self, box: Box):
-        self.log_info("Trying find captcha")
+        self.bot_log.info("Trying find captcha")
         try:
             numbers = []
             count = 0
@@ -382,7 +385,7 @@ class Bot:
             return False
 
     def put_heroes_to_work(self):
-        self.log_info("Trying put heroes to work")
+        self.bot_log.info("Trying put heroes to work")
         self.random_sleep(self._medium_time)
 
         puted_heroes_to_work = False
@@ -420,11 +423,11 @@ class Bot:
                 flag = self.scroll_down()
                 i = i-1 if not flag else i
             
-            self.log_info("Searching for clickable work buttons")
+            self.bot_log.info("Searching for clickable work buttons")
             work_buttons = list(pyautogui.locateAllOnScreen('./images/work-button.png', confidence = self._data['work_button_confidence']))
-            self.log_info(f"{len(work_buttons)} clickable work buttons founded")
+            self.bot_log.info(f"{len(work_buttons)} clickable work buttons founded")
             
-            self.log_info("Putting heroes to work")
+            self.bot_log.info("Putting heroes to work")
             if (len(work_buttons) > 0):
                 box = work_buttons[len(work_buttons)-1]
                 x, y = self.random_moveTo(box)
@@ -443,7 +446,7 @@ class Bot:
                 self.bot_log.error("Unable to go back to menu after putting heroes to work")
                 continue
 
-            self.log_info("Done putting heroes to work")
+            self.bot_log.info("Done putting heroes to work")
             puted_heroes_to_work = True
             break
 
@@ -451,18 +454,18 @@ class Bot:
             raise ValueError("Unable to put heroes to work")
 
     def reset_map(self):
-        self.log_info("Redistributing heroes")
+        self.bot_log.info("Redistributing heroes")
         self.await_and_click("./images/back-to-menu-button.png", self._small_time, tag = "BACK")
         self.await_and_click("./images/start-pve-button.png", self._small_time, tag = "PVE")
 
     def await_for_new_map(self, await_time, map_expected_time_finish):
-        self.log_info(f"Awaiting {str(int(await_time / 60))}m for new map")
+        self.bot_log.info(f"Awaiting {str(int(await_time / 60))}m for new map")
         time_start = time.perf_counter()
 
         while (self.is_time_out(time_start, await_time) == False):
 
             if (self.await_and_click("./images/new-map-button.png", await_time = self._medium_time/2, confidence = 0.92, tag = "NEW") != None):
-                self.log_info(f"Map time spent {str(int(map_time_spent / 60))}m")
+                self.bot_log.info(f"Map time spent {str(int(map_time_spent / 60))}m")
                 self._map_time_start = time.perf_counter()
                 self.try_captcha()
 
