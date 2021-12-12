@@ -408,8 +408,9 @@ class Bot:
 
             self.await_for_image("./images/hero-selection-drag-bar.png", await_time = self._big_time, tag = "HERO")
 
-            if (self.is_image_present("./images/ok-button.png", enableLog = False, tag = "OK")):
-                raise ValueError("Lost connection")
+            if (self.await_and_click("./images/ok-button.png", await_time = self._small_time, tag = "OK")):
+                self.random_sleep(self._medium_time)
+                return
 
             for i in range(3):
                 flag = self.scroll_down()
