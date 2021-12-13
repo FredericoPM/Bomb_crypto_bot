@@ -134,7 +134,6 @@ class Utils:
             self._log.debug(f"{tag} not founded")
             return False
 
-
     def search_for(self, image, await_time, confidence = None, enable_log = True):
         confidence = self._default_confidence if confidence == None else confidence
         await_time = int(await_time)

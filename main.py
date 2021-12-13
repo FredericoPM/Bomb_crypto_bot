@@ -47,24 +47,55 @@ else:
     log = logging.getLogger('root')
     log.setLevel(logging.DEBUG if data['log_level'].lower() == "debug" else logging.INFO)
     log.addHandler(my_handler)
-
-
-multi_bot = Multi_bot(
-    data,
-    log,
-    minimum_time, 
-    small_time, 
-    medium_time, 
-    big_time, 
-    Utils(log, minimum_time, small_time, medium_time, big_time, data['default_confidence']),
-    "C:\Program Files\Google\Chrome\Application\chrome.exe"
-)
-multi_bot.run()
-# bot = Bot(data, log, minimum_time, small_time, medium_time, big_time, Utils(log, minimum_time, small_time, medium_time, big_time, data['default_confidence']))
-# while 1:
-#     try:
-#         bot.run()
-#     except Exception as e:
-#         bot = Bot(data, log, minimum_time, small_time, medium_time, big_time, Utils(log, minimum_time, small_time, medium_time, big_time, data['default_confidence']))
-#         log.error(f"Bot breaking error: {e}")
+    
+if(data['number_of_bots'] > 1):
+    multi_bot = Multi_bot(
+        data,
+        log,
+        minimum_time, 
+        small_time, 
+        medium_time, 
+        big_time, 
+        Utils(log, minimum_time, small_time, medium_time, big_time, data['default_confidence']),
+        "C:\Program Files\Google\Chrome\Application\chrome.exe"
+    )
+    while 1:
+        try:
+            multi_bot.run()
+        except Exception as e:
+            multi_bot = Multi_bot(
+                data,
+                log,
+                minimum_time, 
+                small_time, 
+                medium_time, 
+                big_time, 
+                Utils(log, minimum_time, small_time, medium_time, big_time, data['default_confidence']),
+                "C:\Program Files\Google\Chrome\Application\chrome.exe"
+            )
+            log.error(f"Bot breaking error: {e}")
+else:
+    bot = Bot(
+            data, 
+            log, 
+            minimum_time, 
+            small_time, 
+            medium_time, 
+            big_time, 
+            Utils(log, minimum_time, small_time, medium_time, big_time, data['default_confidence'])
+        )
+    while 1:
+        try:
+            bot.run()
+        except Exception as e:
+            bot = Bot(
+                data, 
+                log, 
+                minimum_time, 
+                small_time, 
+                medium_time, 
+                big_time, 
+                Utils(log, minimum_time, small_time, medium_time, big_time, data['default_confidence'])
+            )
+            log.error(f"Bot breaking error: {e}")
 
