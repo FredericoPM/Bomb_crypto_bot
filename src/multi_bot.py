@@ -65,7 +65,6 @@ class Multi_bot:
         while len(checked) != self._data['number_of_bots']:
             index = self.index_of(self._windows, lambda e : e != None and e['id'] not in checked)
             self._bot_log.info(f"Starting workflow on bot {self._windows[index]['id']}")
-            print(self._windows[index])
             checked.append(self._windows[index]['id'])
             self.switch_to_windown(index)
             index = 0
@@ -75,17 +74,44 @@ class Multi_bot:
                     if(self._windows[index]['state'] == 1):
                         self._bot.refresh()
                         self._utils.await_for_image("./images/connect-wallet-button.png", await_time = self._big_time, tag = "CONNECT")
-                        self._bot.try_to_login()
+                        self._bot.try_to_login(10)
                     elif(self._windows[index]['state'] == 2):
                         self._bot.put_heroes_to_work()
                 except Exception as e:
                     self._bot_log.error(f"Workflow was broken: {e}")
                     self._bot.refresh()
                     self._utils.await_for_image("./images/connect-wallet-button.png", await_time = self._big_time, tag = "CONNECT")
-                    self.try_to_login()
+                    self._bot.try_to_login(10)
                     self._windows[index]['state'] = 1
+            self._windows[index]['start_time'] = time.perf_counter()
 
     def run(self):
         while True:
             self._put_all_to_work()
-            
+            time_left = self._data['map_time']
+            while time_left > 0:
+                time_start = time.perf_counter()
+
+
+                for index in range(self._data['number_of_bots']-1, 0, -1):
+                    self.switch_to_windown(index)
+                    map_time_spent = time.perf_counter() - self._windows[0]['start_time']
+                    if(self._utils.await_and_click("./images/new-map-button.png", self._utils.randon_time(self._medium_time/2))):
+                        self._windows[0]['start_time'] = time.perf_counter()
+                        self._bot_log.info(f"Map time spent {str(int(map_time_spent / 60))}m")
+                        self._bot.try_captcha()
+
+                    if(self._utils.is_image_present("./images/ok-button.png") or self._utils.await_for_image("./images/connect-wallet-button.png", self._medium_time/2)):
+                        self._bot.refresh()
+                        self._utils.await_for_image("./images/connect-wallet-button.png", self._big_time)
+                        self._bot.try_to_login(10)
+                        self._utils.await_and_click("./images/start-pve-button.png", self._utils.randon_time(2*self._medium_time))
+
+                    
+                    if(map_time_spent > self._data['map_expected_time_finish'] and time_interval_refresh > 60):
+                        self._bot.reset_map()
+                
+                time_progress = self._data['map_time'] - time_left
+                time_interval_refresh = time_progress % 70
+                time_spent = time.perf_counter() - time_start
+                time_left -= time_spent

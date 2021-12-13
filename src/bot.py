@@ -34,13 +34,13 @@ class Bot:
         pyautogui.keyUp('ctrl')
         time.sleep(self._utils.randon_time(self._big_time))
     
-    def try_to_login(self):
+    def try_to_login(self, trys = None):
         self._bot_log.info("Trying to login")
         self._utils.random_move(-300,  0)
         self._utils.random_sleep(self._small_time)
 
         attempts = 1
-        while (not self._utils.is_image_present("./images/start-pve-button.png", tag = "PVE")):
+        while (not self._utils.is_image_present("./images/start-pve-button.png", tag = "PVE") and (trys == None or attempts <= trys)):
 
             if (self._utils.await_and_click("./images/connect-wallet-button.png", await_time = 2*self._medium_time, tag = "CONNECT") == None):
                 self._bot_log.error("Error while trying connect")
@@ -319,22 +319,19 @@ class Bot:
         while time_left > 0:
             time_start = time.perf_counter()
 
-            if(self.await_and_click("./images/new-map-button.png", self.randonTime(self._medium_time/2), enableLog = False)):
+            if(self._utils.await_and_click("./images/new-map-button.png", self._utils.randon_time(self._medium_time/2))):
                 self.bot_log.info(f"Map time spent {str(int(map_time_spent / 60))}m")
                 self._map_time_start = time.perf_counter()
                 self.try_captcha()
 
-            if(self.await_for_image("./images/connect-wallet-button.png", self._medium_time/2, enableLog = False)):
+            if(self._utils.await_for_image("./images/connect-wallet-button.png", self._medium_time/2)):
                 raise ValueError("Captcha failed after 3 attempts")
 
-            if(self.is_image_present("./images/ok-button.png", enableLog = False)):
-                if(self.is_image_present("./images/idle-error.png", enableLog = False)):
-                    self.refresh()
-                    self.await_for_image("./images/connect-wallet-button.png", self._big_time)
-                    self.try_to_login()
-                    self.await_and_click("./images/start-pve-button.png", self.randonTime(2*self._medium_time))
-                else:
-                    raise ValueError("Lost connection")
+            if(self._utils.is_image_present("./images/ok-button.png")):
+                self.refresh()
+                self._utils.await_for_image("./images/connect-wallet-button.png", self._big_time)
+                self.try_to_login()
+                self._utils.await_and_click("./images/start-pve-button.png", self._utils.randon_time(2*self._medium_time))
 
             map_time_spent = time.perf_counter() - self._map_time_start
             time_progress = await_time - time_left
