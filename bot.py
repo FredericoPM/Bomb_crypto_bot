@@ -119,6 +119,12 @@ class Bot:
         y +=  random.randint(-int(el_height*range), int(el_height*range))
         return x, y
     
+    def move_and_refresh(self, x, y):
+        self.random_move(x, y)
+        x, y = pyautogui.position()
+        self.click(x, y)
+        self.refresh()
+    
     def is_time_out(self, time_start, await_time):
         time_spent = time.perf_counter() - time_start
         return True if time_spent >= await_time else False
@@ -183,15 +189,14 @@ class Bot:
             return False
 
     def try_to_login(self):
-        self.bot_log.info("Trying to login")
-        self.random_move(-300,  0)
-        self.random_sleep(self._small_time)
-
-        attempts = 1
-        while (not self.is_image_present("./images/start-pve-button.png", tag = "PVE")):
+        self.random_move(-300, -100)
+        maxAttempts = 5
+        for attempt in range(1, maxAttempts):
+            self.bot_log.info(f"{attempt}/{maxAttempts} Trying to login")
 
             if (self.await_and_click("./images/connect-wallet-button.png", await_time = 2*self._medium_time, tag = "CONNECT") == None):
-                self.bot_log.error("Error while trying connect")
+                self.bot_log.error("Error while trying to connect")
+                self.random_move(-300, -100)
                 self.refresh()
                 continue
 
@@ -200,8 +205,8 @@ class Bot:
             self.bot_log.info("Trying to sign metamask")
             if (self._data['plataform'].lower() == 'windows'):
                 if (self.await_and_click("./images/sing-button-windows.png", await_time = 2*self._medium_time, tag = "SIGN") == None):
-                    self.bot_log.error("Error while trying to connect")
-                    self.refresh()
+                    self.bot_log.error("METAMASK_SIGN not founded")
+                    self.move_and_refresh(-300, -100)
                     continue
             else:
                 if(self._data['browser'].lower() == 'vivald'):
@@ -210,35 +215,49 @@ class Bot:
                     box = self.await_and_click("./images/sing-button-linux-chrome.png", await_time = 2*self._medium_time, tag = "SIGN")
 
                 if (box == None):
-                    try:
-                        if (self._data['browser'].lower() == 'vivald'):
-                            box = self.await_and_click("./images/metamask_sign_tab_vivald.png", await_time = 2*self._medium_time, tag = "METAMASK")
-                        else:
-                            box = self.await_and_click("./images/metamask_sign_tab_chrome.png", await_time = 2*self._medium_time, tag = "METAMASK")
+                    if (self._data['browser'].lower() == 'vivald'):
+                        box = self.await_and_click("./images/metamask_sign_tab_vivald.png", await_time = 2*self._medium_time, tag = "METAMASK")
+                    else:
+                        box = self.await_and_click("./images/metamask_sign_tab_chrome.png", await_time = 2*self._medium_time, tag = "METAMASK")
 
-                        if (box == None):
-                            raise ValueError("metamask_sign_tab not founded")
-
-                        if (self._data['browser'].lower() == 'vivald'):
-                            box = self.await_and_click("./images/sing-button-linux-vivald.png", await_time = 2*self._medium_time, tag = "SIGN")
-                        else:
-                            box = self.await_and_click("./images/sing-button-linux-chrome.png", await_time = 2*self._medium_time, tag = "SIGN")
-
-                    except Exception as e:
-                        self.bot_log.error(f"Error while trying to connect: {e}")
-                        self.refresh()
+                    if (box == None):
+                        self.bot_log.error("METAMASK_TAB not founded")
+                        self.move_and_refresh(-300, -100)
                         continue
 
-            attempts += 1
-            if (self.await_for_image("./images/start-pve-button.png", await_time = 5*self._big_time, tag = "PVE") == None):
-                self.bot_log.error("Error while trying connect")
-                self.refresh()
-                continue
+                    if (self._data['browser'].lower() == 'vivald'):
+                        box = self.await_and_click("./images/sing-button-linux-vivald.png", await_time = 2*self._medium_time, tag = "SIGN")
+                    else:
+                        box = self.await_and_click("./images/sing-button-linux-chrome.png", await_time = 2*self._medium_time, tag = "SIGN")
 
-        self.bot_log.info(f"Logged in after {str(attempts-1)} attempts")
+                if (box == None):
+                    self.bot_log.error("METAMASK_SIGN not founded")
+                    self.move_and_refresh(-400, 100)
+                    continue
+
+            self.bot_log.info("Waiting to start")
+            maxAttemptsAwait = 4
+            for i in range(1, maxAttemptsAwait):
+
+                if (self.await_for_image("./images/start-pve-button.png", await_time = self._big_time, tag = "PVE")):
+                    self.bot_log.info(f"Logged in after {attempt} attempts")
+                    return
+
+                if (self.await_and_click("./images/ok-button.png", await_time = self._small_time, tag = "OK")):
+                    self.random_move(-300, -100)
+                    time.sleep(2*self._medium_time)
+                    if (attempt == maxAttempts):
+                        raise ValueError(f"Failed after {maxAttempts} attempts")
+                    break
+
+                if (i == maxAttemptsAwait):                    
+                    self.bot_log.info("Time to start is over")
+                    self.move_and_refresh(-300, -100)
+
+        raise ValueError(f"Failed after {maxAttempts} attempts")
         
     def try_captcha(self):
-        window = self.await_for_image("./images/captcha_window.png", await_time = self._minimum_time, confidence = 0.92, tag = "WINDOW")
+        window = self.await_for_image("./images/captcha_window.png", await_time = self._minimum_time, confidence = 0.92, tag = "CAPTCHA")
         if (window != None):
             self.bot_log.info("Captcha START")
             try:
@@ -265,16 +284,16 @@ class Bot:
                     pyautogui.mouseDown()
                     for i in range(5):
                         if (i == 1):
-                            self.random_move(-sliderDistance, 0, time = 0.7)
+                            self.random_move(-sliderDistance, 0, time = 0.6)
                         elif (i == 2):
-                            self.random_move(sliderDistance * 2, 0, time = 0.7)
+                            self.random_move(sliderDistance * 2, 0, time = 0.6)
                         else:
-                            self.random_move(sliderDistance, 0, time = 0.7)
+                            self.random_move(sliderDistance, 0, time = 0.6)
                         if (self.find_captcha_two(windowCaptchaTwoRegion, first, second, third, i)):
                             break
                     pyautogui.mouseUp()
 
-                    if (not self.is_image_present("./images/captcha_button.png", tag = "SLIDER")):                        
+                    if (not self.is_image_present("./images/captcha_button.png", enableLog = False, tag = "SLIDER")):
                         self.bot_log.info("Captcha END")
                         break
             except Exception as e:
@@ -336,7 +355,8 @@ class Bot:
                         if (pixelWhiteSize == numberMinSize):
                             marginX -= numberMinSize - 1
                             pixelWhiteSize = 0
-                            # ss.putpixel((marginX, marginY), (0, 128, 0))
+                            if (self._data['log_level'].lower() == "debug"):
+                                ss.putpixel((marginX, marginY), (0, 128, 0))
 
                             localizedAllPixels = 0
                             for pixel in pixels:
@@ -345,13 +365,15 @@ class Bot:
                                 color = pixel[2]
                                 if (ss.getpixel((marginX + pixX, marginY + pixY)) == color): 
                                     localizedAllPixels += 1
-                                # ss.putpixel((marginX + pixX, marginY + pixY), (255, 0, 0))
+                                if (self._data['log_level'].lower() == "debug"):
+                                    ss.putpixel((marginX + pixX, marginY + pixY), (255, 0, 0))
 
                             if (localizedAllPixels == 3):
                                 marginX = marginX + nextNumberStart
                             else:
                                 self.bot_log.info(f"#{whileIndex + 1} not find: {numberToFind}")
-                                # ss.save(f'my_screenshot_{whileIndex + 1}.png')
+                                if (self._data['log_level'].lower() == "debug"):
+                                    ss.save(f'my_screenshot_{whileIndex + 1}.png')
                                 return False
 
                             numberPosition += 1
@@ -366,7 +388,8 @@ class Bot:
                 except Exception as e:
                     print(e)
                     return False
-            # ss.save(f'my_screenshot_{whileIndex + 1}.png')
+            if (self._data['log_level'].lower() == "debug"):
+                ss.save(f'my_screenshot_{whileIndex + 1}.png')
             return True
         except Exception as e:
             self.bot_log.error(f"Error on find_captcha_two: {e}")
@@ -377,7 +400,7 @@ class Bot:
             drag_bars = list(pyautogui.locateAllOnScreen("./images/hero-selection-drag-bar.png", confidence = 0.8))
             drag = drag_bars[len(drag_bars)-1]
             self.random_moveTo(drag)
-            self.random_drag(0, -220, time = 0.4)
+            self.random_drag(0, -200, time = 0.4)
             self.random_sleep(self._minimum_time)
             return True
         except Exception as e:
@@ -392,11 +415,10 @@ class Bot:
         stopFlow = False
 
         for i in range (5):
-
             #* PVE screen
             if (self.is_image_present("./images/back-to-menu-button.png", tag = "BACK") and not self.is_image_present("./images/hero-selection-drag-bar.png", tag = "HERO")):
                 stopFlow = self.await_and_click("./images/back-to-menu-button.png", await_time = self._big_time, tag = "BACK") == None
-            #* Heroes screen
+            #* Main screen
             elif (self.is_image_present("./images/close-button.png", tag = "CLOSE")):
                 stopFlow = self.await_and_click("./images/close-button.png", await_time = self._big_time, tag = "CLOSE") == None
 
@@ -404,7 +426,7 @@ class Bot:
                 self.bot_log.error("Unable to go back to menu")
                 continue
 
-            #* Menu screen
+            #* Heroes screen
             if (not self.is_image_present("./images/hero-selection-drag-bar.png", tag = "HERO")):
                 stopFlow = self.await_and_click("./images/heroes-menu-button.png", await_time = self._big_time, tag = "HEROES") == None
             if (stopFlow):
@@ -413,13 +435,16 @@ class Bot:
 
             self.try_captcha()
 
-            self.await_for_image("./images/hero-selection-drag-bar.png", await_time = self._big_time, tag = "HERO")
+            if (self.await_for_image("./images/hero-selection-drag-bar.png", await_time = self._big_time, tag = "HERO") == None):
 
-            if (self.await_and_click("./images/ok-button.png", await_time = self._small_time, tag = "OK")):
-                self.random_sleep(self._medium_time)
-                return
+                if (self.is_image_present("./images/ok-button.png", tag = "OK")):
+                    raise ValueError("Lost connection")
 
-            for i in range(3):
+                if (self.is_image_present("./images/connect-wallet-button.png", tag = "CONNECT") != None):
+                    self.bot_log.error("Failed after 3 attempts")
+                    break
+
+            for i in range(4):
                 flag = self.scroll_down()
                 i = i-1 if not flag else i
             
@@ -455,8 +480,8 @@ class Bot:
 
     def reset_map(self):
         self.bot_log.info("Redistributing heroes")
-        self.await_and_click("./images/back-to-menu-button.png", self._small_time, tag = "BACK")
-        self.await_and_click("./images/start-pve-button.png", self._small_time, tag = "PVE")
+        self.await_and_click("./images/back-to-menu-button.png", await_time = self._small_time, enableLog = False, tag = "BACK")
+        self.await_and_click("./images/start-pve-button.png", await_time = self._small_time, enableLog = False, tag = "PVE")
 
     def await_for_new_map(self, await_time, map_expected_time_finish):
         self.bot_log.info(f"Awaiting {str(int(await_time / 60))}m for new map")
@@ -464,23 +489,30 @@ class Bot:
 
         while (self.is_time_out(time_start, await_time) == False):
 
-            if (self.await_and_click("./images/new-map-button.png", await_time = self._medium_time/2, confidence = 0.92, tag = "NEW") != None):
+            if (self.await_and_click("./images/new-map-button.png", await_time = self._medium_time, tag = "NEW") != None):
                 self.bot_log.info(f"Map time spent {str(int(map_time_spent / 60))}m")
                 self._map_time_start = time.perf_counter()
+
                 self.try_captcha()
 
-            if (self.await_and_click("./images/connect-wallet-button.png", await_time = self._medium_time/2, tag = "CONNECT") != None):
-                raise ValueError("Captcha failed after 3 attempts")
+                if (self.await_and_click("./images/ok-button.png", await_time = self._medium_time, tag = "OK")):
+                    self.bot_log.error("Lost connection")
+                    time.sleep(self._medium_time)
+                    break
 
-            if (self.await_for_image("./images/ok-button.png", await_time = self._medium_time/2, tag = "OK")):
-                raise ValueError("Lost connection")
+                if (self.await_and_click("./images/connect-wallet-button.png", await_time = self._medium_time, tag = "CONNECT") != None):
+                    self.bot_log.error("Failed after 3 attempts")
+                    break
 
             map_time_spent = self.time_spent(self._map_time_start)
             time_interval_refresh = self.time_spent(time_start) % 70
 
-            # print("time_interval_refresh =", time_interval_refresh)
             if(map_time_spent > map_expected_time_finish and time_interval_refresh > 60):
-                self.reset_map()            
+                if (not self.is_image_present('./images/ok-button.png', enableLog = False, tag = "OK")):
+                    self.reset_map()
+        
+        if (self.await_and_click("./images/ok-button.png", await_time = self._small_time, tag = "OK")):
+            raise ValueError("Lost connection")
 
     #* 1 - login
     #* 2 - Put heroes to work
@@ -500,11 +532,10 @@ class Bot:
 
         while True:
             random.seed(time.time())
-            self.random_sleep(self._medium_time)
+            time.sleep(self._medium_time)
             state = self.select_wat_to_do(state)
             try:
                 if(state == 1):
-                    self.refresh()
                     self.await_for_image("./images/connect-wallet-button.png", await_time = self._big_time, tag = "CONNECT")
                     self.try_to_login()
                 elif(state == 2):
