@@ -4,8 +4,8 @@ Windows:
 - Instalando o bot:
 	- Instalar o python 3.8 (arquivo de instalação esta na pasta windows dentro da pasta do bot, *marque a opção de adicionar o python ao path*)
 	- python ./windows/get-pip.py (deve ser rodado dentro da pasta do bot)
-	- pip install pyautogui
-	- pip install opencv-python
+	- pip install -r requirements.txt
+
 	- python bot.py (starta o bot, deve ser rodado dentro da pasta do bot)
 
 Linux:
@@ -15,8 +15,7 @@ Linux:
 	- sudo apt install python3.8
 	- sudo apt-get install python3-tk python3-dev
 	- sudo apt install python3-pip
-	- python3 -m pip install pyautogui
-	- python3 -m pip install opencv-python
+	- python3 -m pip install -r requirements.txt
 
 	- python3 bot.py (starta o bot, deve ser rodado dentro da pasta do bot)
 		
