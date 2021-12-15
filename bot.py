@@ -7,6 +7,8 @@ import random
 import logging
 from logging.handlers import RotatingFileHandler
 from pyscreeze import Box
+import get_server_status
+import global_variables
 
 class Bot:
     _data = {
@@ -522,7 +524,12 @@ pyautogui.FAILSAFE = False
 bot = Bot()
 while True:
     try:
-        bot.run()
+        if(global_variables.server_status != -1):
+            print('Server Online')
+            bot.run()
+        else:
+            print('Server Offline')
+            bot.random_sleep(bot._big_time)
     except Exception as e:
         bot = Bot()
         # bot.bot_log.error(f"Bot breaking error: {e}")
