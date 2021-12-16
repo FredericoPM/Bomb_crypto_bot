@@ -8,6 +8,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 from pyscreeze import Box
 
+
 class Bot:
     _data = {
         'speed': 1.0,
@@ -190,9 +191,9 @@ class Bot:
 
     def try_to_login(self):
         self.random_move(-300, -100)
-        maxAttempts = 5
-        for attempt in range(1, maxAttempts):
-            self.bot_log.info(f"{attempt}/{maxAttempts} Trying to login")
+        maxAttempts = 10
+        for attempt in range(maxAttempts):
+            self.bot_log.info(f"{attempt + 1}/{maxAttempts} Trying to login")
 
             if (self.await_and_click("./images/connect-wallet-button.png", await_time = 2*self._medium_time, tag = "CONNECT") == None):
                 self.bot_log.error("Error while trying to connect")
@@ -236,11 +237,11 @@ class Bot:
                     continue
 
             self.bot_log.info("Waiting to start")
-            maxAttemptsAwait = 4
-            for i in range(1, maxAttemptsAwait):
+            maxAttemptsAwait = 5
+            for i in range(maxAttemptsAwait):
 
                 if (self.await_for_image("./images/start-pve-button.png", await_time = self._big_time, tag = "PVE")):
-                    self.bot_log.info(f"Logged in after {attempt} attempts")
+                    self.bot_log.info(f"Logged in after {attempt + 1} attempts")
                     return
 
                 if (self.await_and_click("./images/ok-button.png", await_time = self._small_time, tag = "OK")):
@@ -259,6 +260,13 @@ class Bot:
     def try_captcha(self):
         window = self.await_for_image("./images/captcha_window.png", await_time = self._minimum_time, confidence = 0.92, tag = "CAPTCHA")
         if (window != None):
+            self.bot_log.info("Awaiting YOU solve the captcha")
+
+            while (self.is_image_present("./images/captcha_window.png", confidence = 0.92, enableLog = False, tag = "CAPTCHA")):
+                self.random_sleep(self._big_time)
+            
+            return
+
             self.bot_log.info("Captcha START")
             try:
                 while True:
@@ -317,7 +325,7 @@ class Bot:
         except Exception as e:
             self.bot_log.error(f"Error on find_captcha: {e}")
             raise ValueError("Unable to Find Captcha")
-    
+
     def find_captcha_two(self, box: Box, first, second, third, whileIndex):
         try:
             ss = pyautogui.screenshot(region = box)
@@ -435,22 +443,33 @@ class Bot:
 
             self.try_captcha()
 
-            if (self.await_for_image("./images/hero-selection-drag-bar.png", await_time = self._big_time, tag = "HERO") == None):
+            self.bot_log.info("Waiting for heroes")
+            maxAttemptsAwait = 3
+            for attempt in range(maxAttemptsAwait):
 
-                if (self.is_image_present("./images/ok-button.png", tag = "OK")):
-                    raise ValueError("Lost connection")
+                if (self.await_for_image("./images/hero-selection-drag-bar.png", await_time = self._big_time, enableLog = False, tag = "HERO") == None):
+                    if (self.await_and_click("./images/ok-button.png", await_time = self._small_time, tag = "OK")):
+                        self.bot_log.error("Lost connection")
+                        return
 
-                if (self.is_image_present("./images/connect-wallet-button.png", tag = "CONNECT") != None):
-                    self.bot_log.error("Failed after 3 attempts")
+                    if (self.is_image_present("./images/connect-wallet-button.png", tag = "CONNECT")):
+                        self.bot_log.error("Failed after 3 attempts")
+                        return
+                else:
                     break
 
-            for i in range(4):
+                if (attempt == maxAttemptsAwait - 1):
+                    self.bot_log.error("Time for heroes is over")       
+                    self.move_and_refresh(-300, -100)      
+                    return
+                    
+            for i in range(3):
                 flag = self.scroll_down()
                 i = i-1 if not flag else i
             
-            self.bot_log.info("Searching for clickable work buttons")
+            self.bot_log.info("Searching for work buttons")
             work_buttons = list(pyautogui.locateAllOnScreen('./images/work-button.png', confidence = self._data['work_button_confidence']))
-            self.bot_log.info(f"{len(work_buttons)} clickable work buttons founded")
+            self.bot_log.info(f"{len(work_buttons)} work buttons founded")
             
             self.bot_log.info("Putting heroes to work")
             if (len(work_buttons) > 0):
@@ -488,6 +507,7 @@ class Bot:
         time_start = time.perf_counter()
 
         while (self.is_time_out(time_start, await_time) == False):
+            map_time_spent = self.time_spent(self._map_time_start)
 
             if (self.await_and_click("./images/new-map-button.png", await_time = self._medium_time, tag = "NEW") != None):
                 self.bot_log.info(f"Map time spent {str(int(map_time_spent / 60))}m")
@@ -497,14 +517,12 @@ class Bot:
 
                 if (self.await_and_click("./images/ok-button.png", await_time = self._medium_time, tag = "OK")):
                     self.bot_log.error("Lost connection")
-                    time.sleep(self._medium_time)
-                    break
+                    return
 
                 if (self.await_and_click("./images/connect-wallet-button.png", await_time = self._medium_time, tag = "CONNECT") != None):
                     self.bot_log.error("Failed after 3 attempts")
-                    break
+                    return
 
-            map_time_spent = self.time_spent(self._map_time_start)
             time_interval_refresh = self.time_spent(time_start) % 70
 
             if(map_time_spent > map_expected_time_finish and time_interval_refresh > 60):
@@ -532,7 +550,7 @@ class Bot:
 
         while True:
             random.seed(time.time())
-            time.sleep(self._medium_time)
+            time.sleep(2*self._medium_time)
             state = self.select_wat_to_do(state)
             try:
                 if(state == 1):
@@ -541,7 +559,7 @@ class Bot:
                 elif(state == 2):
                     self.put_heroes_to_work()
                 else:
-                    self.await_for_new_map(self._data['map_time'], self._data['map_expected_time_finish'])
+                    self.await_for_new_map(self.random_time(self._data['map_time']), self._data['map_expected_time_finish'])
             except Exception as e:
                 self.bot_log.error(f"Workflow was broken: {e}")
                 self.refresh()
