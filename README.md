@@ -17,7 +17,6 @@ Linux:
 	- sudo apt install python3-pip
 	- python3 -m pip install pyautogui
 	- python3 -m pip install opencv-python
-
 	- python3 bot.py (starta o bot, deve ser rodado dentro da pasta do bot)
 		
 - Instalando o Vivaldi :
