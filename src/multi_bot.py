@@ -69,19 +69,22 @@ class Multi_bot:
             self.switch_to_windown(index)
             index = 0
             while(self._windows[index]['state'] != 3):
+                previus_state = self._windows[index]['state']
                 self._windows[index]['state'] = self._bot.select_wat_to_do(self._windows[index]['state'])
+                if(previus_state == 2 and self._windows[index]['state'] == previus_state):
+                    break
                 try:
                     if(self._windows[index]['state'] == 1):
                         self._bot.refresh()
                         self._utils.await_for_image("./images/connect-wallet-button.png", await_time = self._big_time, tag = "CONNECT")
-                        self._bot.try_to_login(10)
+                        self._bot.try_to_login(5)
                     elif(self._windows[index]['state'] == 2):
                         self._bot.put_heroes_to_work()
                 except Exception as e:
                     self._bot_log.error(f"Workflow was broken: {e}")
                     self._bot.refresh()
                     self._utils.await_for_image("./images/connect-wallet-button.png", await_time = self._big_time, tag = "CONNECT")
-                    self._bot.try_to_login(10)
+                    self._bot.try_to_login(5)
                     self._windows[index]['state'] = 1
             self._windows[index]['start_time'] = time.perf_counter()
 

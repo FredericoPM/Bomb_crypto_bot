@@ -47,8 +47,6 @@ class Bot:
                 self.refresh()
                 continue
 
-            self.try_captcha()
-
             self._bot_log.info("Trying to sign metamask")
             if (self._data['plataform'].lower() == 'windows'):
                 if (self._utils.await_and_click("./images/sing-button-windows.png", await_time = 2*self._medium_time, tag = "SIGN") == None):
@@ -90,141 +88,6 @@ class Bot:
                 continue
 
         self._bot_log.info(f"Logged in after {str(attempts-1)} attempts")
-        
-    def try_captcha(self):
-        window = self._utils.await_for_image("./images/captcha_window.png", await_time = self._minimum_time, confidence = 0.92, tag = "WINDOW")
-        if (window != None):
-            self._bot_log.info("Captcha START")
-            try:
-                while True:
-                    #* Window
-                    windowCaptchaOneRegion = Box(window.left + 85, window.top + 150, 185, 70)
-                    windowCaptchaTwoRegion = Box(window.left + 75, window.top + 120, 420, 140)
-                    windowSliderRegion = Box(window.left, window.top + 350, 520, 80)
-
-                    #* Slider
-                    captchaButton = self._utils.await_for_image("./images/captcha_button.png", await_time = self._small_time, region = windowSliderRegion, tag = "SLIDER")
-                    buttonX, buttonY = pyautogui.center(captchaButton)
-                    sliderMargin = buttonX - window.left
-                    sliderSize = 520 - sliderMargin * 2
-
-                    #* Captcha locate
-                    first, second, third = self.find_captcha(windowCaptchaOneRegion)
-                    self._bot_log.info(f"Trying find captcha: {first}{second}{third}")
-
-                    #* Calculate scrolled distance, click and move
-                    self._utils.random_moveTo(captchaButton, range = 0.1)
-                    sliderDistance = int(sliderSize / 4)
-
-                    pyautogui.mouseDown()
-                    for i in range(5):
-                        if (i == 1):
-                            self._utils.random_move(-sliderDistance, 0, time = 0.7)
-                        elif (i == 2):
-                            self._utils.random_move(sliderDistance * 2, 0, time = 0.7)
-                        else:
-                            self._utils.random_move(sliderDistance, 0, time = 0.7)
-                        if (self.find_captcha_two(windowCaptchaTwoRegion, first, second, third, i)):
-                            break
-                    pyautogui.mouseUp()
-
-                    if (not self._utils.is_image_present("./images/captcha_button.png", tag = "SLIDER")):                        
-                        self._bot_log.info("Captcha END")
-                        break
-            except Exception as e:
-                self._bot_log.error(f"Error on try_captcha: {e}")
-                raise ValueError("Unable to Try Captcha")
-
-    def find_captcha(self, box: Box):
-        self._bot_log.info("Trying find captcha")
-        try:
-            numbers = []
-            count = 0
-            for i in range(10):
-                number = pyautogui.locateOnScreen(f"./images/{i}.png", region=box, confidence = 0.92)
-                if (number != None): 
-                    numbers.append((i, number.left))
-                    count += 1
-                    if (count == 3):
-                        break
-            numbersOrderned = sorted(numbers, key=lambda elem: elem[1])
-            return [elem[0] for elem in numbersOrderned]
-        except Exception as e:
-            self._bot_log.error(f"Error on find_captcha: {e}")
-            raise ValueError("Unable to Find Captcha")
-    
-    def find_captcha_two(self, box: Box, first, second, third, whileIndex):
-        try:
-            ss = pyautogui.screenshot(region = box)
-
-            white = (255, 255, 255)
-            brown = (186, 113, 86)
-            numbersToFind = (first, second, third)
-            numbers = (
-                [0, 106, ([10, 0, white], [35, -90, white], [55, 0, white]), 71], #100%
-                [1, 120, ([3, -110, white], [6, -110, white], [13, 8, white]), 20], #100%
-                [2, 110, ([33, -100, white], [40, 10, white], [80, 18, white]), 85], #100%
-                [3, 17, ([40, 13, white], [57, 79, white], [54, 87, white]), 70], #50%
-                [4, 28, ([7, 0, white], [40, 90, white], [50, 0, white]), 60], #90#
-                [5, 114, ([10, -9, white], [14, -82, white], [65, -19, white]), 73], #75%
-                [6, 100, ([15, -72, white], [38, 0, white], [65, -5, white]), 76], #100%
-                [7, 113, ([10, 5, white], [16, -18, white], [28, -85, white]), 20], #75%
-                [8, 99, ([3, -4, white], [4, -4, white], [57, -66, white]), 72], #50%
-                [9, 106, ([-5, -73, white], [10, -11, white], [11, 4, white]), 19] #50
-            )
-
-            marginX = 0
-            marginY = 0
-            pixelWhiteSize = 0
-            numberMinSize = 11
-            numberPosition = 0
-            numberToFind = numbersToFind[numberPosition]
-            while (marginX < box.width):
-                try:
-                    marginY = numbers[numberToFind][1]
-                    pixels = numbers[numberToFind][2]
-                    nextNumberStart = numbers[numberToFind][3]
-                    if (ss.getpixel((marginX, marginY)) == white):
-
-                        pixelWhiteSize += 1
-                        if (pixelWhiteSize == numberMinSize):
-                            marginX -= numberMinSize - 1
-                            pixelWhiteSize = 0
-                            # ss.putpixel((marginX, marginY), (0, 128, 0))
-
-                            localizedAllPixels = 0
-                            for pixel in pixels:
-                                pixX = pixel[0]
-                                pixY = pixel[1]
-                                color = pixel[2]
-                                if (ss.getpixel((marginX + pixX, marginY + pixY)) == color): 
-                                    localizedAllPixels += 1
-                                # ss.putpixel((marginX + pixX, marginY + pixY), (255, 0, 0))
-
-                            if (localizedAllPixels == 3):
-                                marginX = marginX + nextNumberStart
-                            else:
-                                self._bot_log.info(f"#{whileIndex + 1} not find: {numberToFind}")
-                                # ss.save(f'my_screenshot_{whileIndex + 1}.png')
-                                return False
-
-                            numberPosition += 1
-                            if (numberPosition < 3):
-                                numberToFind = numbersToFind[numberPosition]
-                            else:
-                                self._bot_log.info(f"#{whileIndex + 1} find all")
-                    else:
-                        pixelWhiteSize = 0
-
-                    marginX += 1
-                except Exception as e:
-                    print(e)
-                    return False
-            # ss.save(f'my_screenshot_{whileIndex + 1}.png')
-            return True
-        except Exception as e:
-            self._bot_log.error(f"Error on find_captcha_two: {e}")
-            raise ValueError("Unable to Find Captcha Two")
 
     def scroll_down(self):
         try:
@@ -265,7 +128,6 @@ class Bot:
                 self._bot_log.error("heroes-menu-button.png not found")
                 continue
 
-            self.try_captcha()
 
             self._utils.await_for_image("./images/hero-selection-drag-bar.png", await_time = self._big_time, tag = "HERO")
 
@@ -322,10 +184,6 @@ class Bot:
             if(self._utils.await_and_click("./images/new-map-button.png", self._utils.randon_time(self._medium_time/2))):
                 self.bot_log.info(f"Map time spent {str(int(map_time_spent / 60))}m")
                 self._map_time_start = time.perf_counter()
-                self.try_captcha()
-
-            if(self._utils.await_for_image("./images/connect-wallet-button.png", self._medium_time/2)):
-                raise ValueError("Captcha failed after 3 attempts")
 
             if(self._utils.is_image_present("./images/ok-button.png")):
                 self.refresh()
