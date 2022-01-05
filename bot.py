@@ -150,7 +150,7 @@ class Bot:
                 x, y = self.random_moveTo(box)
                 self.click(x, y)
                 if (enableLog):
-                    self.bot_log.info(f"{tag} founded and clicked")
+                    self.bot_log.info(f"{tag} clicked")
                 return box
             else:
                 time.sleep(2)
@@ -364,6 +364,9 @@ class Bot:
     def await_for_new_map(self, await_time, map_expected_time_finish):
         self.bot_log.info(f"Awaiting {str(int(await_time / 60))}m for new map")
         time_start = time.perf_counter()
+        
+        if (self.await_and_click("./images/ok-button.png", await_time=self._big_time, tag="OK")):
+            raise ValueError("Lost connection")
 
         while (self.is_time_out(time_start, await_time) == False):
             map_time_spent = self.time_spent(self._map_time_start)
