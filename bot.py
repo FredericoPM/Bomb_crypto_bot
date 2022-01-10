@@ -322,24 +322,35 @@ class Bot:
 
     def await_for_new_map(self, await_time):
         self.bot_log.info(f"Awaiting {str(int(await_time / 60))}m for new map")
-        time_start = time.perf_counter()
-        
-        if (self.await_and_click("./images/ok-button.png", await_time=self._big_time, tag="OK")):
-            raise ValueError("Lost connection")
 
-        while (self.is_time_out(time_start, await_time) == False):
+        map_time_start = time.perf_counter()
+        is_map_time_finish = False
+
+        self.check_connection()
+
+        while (is_map_time_finish == False):
             map_time_spent = self.time_spent(self._map_time_start)
+            is_map_time_finish = self.is_time_out(map_time_start, await_time)
 
             if (self.await_and_click("./images/new-map-button.png", await_time=self._medium_time, tag="NEW") != None):
                 self.bot_log.info(f"Map time spent {str(int(map_time_spent / 60))}m")
                 self._map_time_start = time.perf_counter()
 
                 if (self.await_and_click("./images/ok-button.png", await_time=self._big_time, tag="OK")):
-                    self.bot_log.error("Lost connection")
-                    return
+                    raise ValueError("Lost connection")
 
-        if (self.await_and_click("./images/ok-button.png", await_time=self._small_time, tag="OK")):
-            raise ValueError("Lost connection")
+            if (self.time_spent(map_time_start) % 260 > 250):
+                self.check_connection()
+            
+            if (self.time_spent(map_time_start) < 300 or is_map_time_finish):
+                if (self.await_and_click("./images/ok-button.png", await_time=self._small_time, tag="OK")):
+                    raise ValueError("Lost connection")
+
+    def check_connection(self):
+        if (not self.is_image_present('./images/ok-button.png', enableLog=False, tag="OK")):
+            self.bot_log.info("Checking connection")
+            self.await_and_click("./images/chest-button.png", await_time=self._small_time, enableLog=False, tag="CHEST")
+            self.await_and_click("./images/close-button.png", await_time=self._small_time, enableLog=False, tag="CLOSE")
 
     # * 1 - login
     # * 2 - Put heroes to work
