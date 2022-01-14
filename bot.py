@@ -12,7 +12,8 @@ from pyscreeze import Box
 class Bot:
     _data = {
         'speed': 1.0,
-        'map_time': 3000,
+        'map_time': 2800,
+        'map_expected_time_finish': 10000,
         'work_button_confidence': 0.9,
         'default_confidence': 0.9,
         'plataform': 'windows',
@@ -252,7 +253,10 @@ class Bot:
                     self.random_move(-300, -100)
                     time.sleep(2*self._medium_time)
                     if (attempt + 1 == maxAttempts):
-                        raise ValueError(f"Failed after {maxAttempts} attempts")
+                        self.bot_log.info(f"Failed after {maxAttempts} attempts")
+                        self.bot_log.info("Waiting for 10m")
+                        time.sleep(30*self._big_time)
+                        raise ValueError("Restart login flow")
                     break
 
                 if (i + 1 == maxAttemptsAwait):
@@ -320,7 +324,7 @@ class Bot:
         if (not puted_heroes_to_work):
             raise ValueError("Unable to put heroes to work")
 
-    def await_for_new_map(self, await_time):
+    def await_for_new_map(self, await_time, map_expected_time_finish):
         self.bot_log.info(f"Awaiting {str(int(await_time / 60))}m for new map")
 
         map_time_start = time.perf_counter()
@@ -341,6 +345,9 @@ class Bot:
 
             if (self.time_spent(map_time_start) % 260 > 250):
                 self.check_connection()
+                
+            if (map_time_spent > map_expected_time_finish and self.time_spent(map_time_start) % 70 > 60):
+                self.reset_heroes()
             
             if (self.time_spent(map_time_start) < 300 or is_map_time_finish):
                 if (self.await_and_click("./images/ok-button.png", await_time=self._small_time, tag="OK")):
@@ -351,6 +358,12 @@ class Bot:
             self.bot_log.info("Checking connection")
             self.await_and_click("./images/chest-button.png", await_time=self._small_time, enableLog=False, tag="CHEST")
             self.await_and_click("./images/close-button.png", await_time=self._small_time, enableLog=False, tag="CLOSE")
+            
+    def reset_heroes(self):
+        if (not self.is_image_present('./images/ok-button.png', enableLog=False, tag="OK")):
+            self.bot_log.info("Reset IA heroes")
+            self.await_and_click("./images/back-to-menu-button.png", await_time=self._small_time, enableLog=False, tag="BACK")
+            self.await_and_click("./images/start-pve-button.png", await_time=self._small_time, enableLog=False, tag="PVE")
 
     # * 1 - login
     # * 2 - Put heroes to work
@@ -379,7 +392,7 @@ class Bot:
                 elif(state == 2):
                     self.put_heroes_to_work()
                 else:
-                    self.await_for_new_map(self.random_time(self._data['map_time']))
+                    self.await_for_new_map(self.random_time(self._data['map_time']), self._data['map_expected_time_finish'])
             except Exception as e:
                 self.bot_log.error(f"Workflow was broken: {e}")
                 self.refresh()
