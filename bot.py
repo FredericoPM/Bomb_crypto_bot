@@ -12,11 +12,10 @@ from pyscreeze import Box
 class Bot:
     _data = {
         'speed': 1.0,
-        'map_time': 3000,
-        'map_expected_time_finish': 9000,
+        'map_time': 2800,
+        'map_expected_time_finish': 10000,
         'work_button_confidence': 0.9,
         'default_confidence': 0.9,
-        'put_to_work_trys': 45,
         'plataform': 'windows',
         'browser': 'chrome',
         "console_log": True,
@@ -194,7 +193,6 @@ class Bot:
             return False
 
     def try_to_login(self):
-        self.random_move(-300, -100)
         maxAttempts = 10
         for attempt in range(maxAttempts):
             self.bot_log.info(f"{attempt + 1}/{maxAttempts} Trying to login")
@@ -255,7 +253,10 @@ class Bot:
                     self.random_move(-300, -100)
                     time.sleep(2*self._medium_time)
                     if (attempt + 1 == maxAttempts):
-                        raise ValueError(f"Failed after {maxAttempts} attempts")
+                        self.bot_log.info(f"Failed after {maxAttempts} attempts")
+                        self.bot_log.info("Waiting for 10m")
+                        time.sleep(30*self._big_time)
+                        raise ValueError("Restart login flow")
                     break
 
                 if (i + 1 == maxAttemptsAwait):
@@ -264,31 +265,19 @@ class Bot:
 
         raise ValueError(f"Failed after {maxAttempts} attempts")
 
-    def scroll_down(self):
-        try:
-            drag_bars = list(pyautogui.locateAllOnScreen("./images/hero-selection-drag-bar.png", confidence=0.8))
-            drag = drag_bars[len(drag_bars)-1]
-            self.random_moveTo(drag)
-            self.random_drag(0, -200, time=0.4)
-            self.random_sleep(self._minimum_time)
-            return True
-        except Exception as e:
-            self.bot_log.error(f"Error on scroll_down: {e}")
-            return False
-
     def put_heroes_to_work(self):
         self.bot_log.info("Trying put heroes to work")
-        self.random_sleep(self._medium_time)
+        self.random_sleep(self._small_time)
 
         puted_heroes_to_work = False
         stopFlow = False
 
         for i in range(5):
             # * PVE screen
-            if (self.is_image_present("./images/back-to-menu-button.png", tag="BACK") and not self.is_image_present("./images/hero-selection-drag-bar.png", tag="HERO")):
+            if (self.is_image_present("./images/back-to-menu-button.png", enableLog=False, tag="BACK")):
                 stopFlow = self.await_and_click("./images/back-to-menu-button.png", await_time=self._big_time, tag="BACK") == None
             # * Main screen
-            elif (self.is_image_present("./images/close-button.png", tag="CLOSE")):
+            elif (self.is_image_present("./images/close-button.png", enableLog=False, tag="CLOSE")):
                 stopFlow = self.await_and_click("./images/close-button.png", await_time=self._big_time, tag="CLOSE") == None
 
             if (stopFlow):
@@ -296,51 +285,30 @@ class Bot:
                 continue
 
             # * Heroes screen
-            if (not self.is_image_present("./images/hero-selection-drag-bar.png", tag="HERO")):
+            if (not self.is_image_present("./images/heroes-work-all-button.png", confidence=self._data['work_button_confidence'], tag="WORK")):
                 stopFlow = self.await_and_click("./images/heroes-menu-button.png", await_time=self._big_time, tag="HEROES") == None
             if (stopFlow):
                 self.bot_log.error("heroes-menu-button.png not found")
                 continue
 
-            self.bot_log.info("Waiting for heroes")
-            maxAttemptsAwait = 12
+            self.bot_log.info("Trying to put all heroes to work")
+            maxAttemptsAwait = 10
             for attempt in range(maxAttemptsAwait):
+                self.await_and_click("./images/heroes-work-all-button.png", await_time=self._small_time, confidence=self._data['work_button_confidence'], tag="WORK")
 
-                if (self.await_for_image("./images/hero-selection-drag-bar.png", await_time=self._medium_time, enableLog=False, tag="HERO") == None):
-                    if (self.await_and_click("./images/ok-button.png", await_time=self._small_time, tag="OK")):
-                        self.bot_log.error("Lost connection")
-                        return
-
-                    if (self.is_image_present("./images/connect-wallet-button.png", tag="CONNECT")):
-                        self.bot_log.error("Failed after 3 attempts")
-                        return
-                else:
+                if (self.is_image_present('./images/heroes-work-all-finish.png', confidence=self._data['work_button_confidence'], enableLog=False, tag="WORK")):
                     break
-
+                
+                if (self.await_and_click("./images/ok-button.png", await_time=self._small_time, tag="OK")):
+                    self.bot_log.error("Lost connection")
+                    return
+                
                 if (attempt + 1 == maxAttemptsAwait):
                     self.bot_log.error("Time for heroes is over")
                     self.move_and_refresh(-300, -100)
                     return
-
-            self.bot_log.info("Searching for work buttons")
-            for i in range(3):
-                flag = self.scroll_down()
-                i = i-1 if not flag else i
-
-            work_buttons = list(pyautogui.locateAllOnScreen('./images/work-button.png', confidence=self._data['work_button_confidence']))
-            self.bot_log.info(f"{len(work_buttons)} work buttons founded")
-
-            self.bot_log.info("Putting heroes to work")
-            if (len(work_buttons) > 0):
-                box = work_buttons[len(work_buttons)-1]
-                x, y = self.random_moveTo(box)
-
-                for i in range(0, self._data['put_to_work_trys']):
-                    self.click(x, y)
-                    if (not self.is_image_present('./images/work-button.png', confidence=0.5, enableLog=False, tag="WORK")):
-                        self.await_and_click("./images/close-button.png", await_time=self._medium_time, tag="CLOSE")
-                    elif (not self.is_image_present('./images/work-button.png', confidence=self._data['work_button_confidence'], enableLog=False, tag="WORK")):
-                        break
+                
+                time.sleep(self._medium_time)
 
             stopFlow = self.await_and_click("./images/close-button.png", await_time=2*self._medium_time, tag="CLOSE") == None
             stopFlow = self.await_and_click("./images/start-pve-button.png", await_time=2*self._medium_time, tag="PVE") == None
@@ -356,41 +324,46 @@ class Bot:
         if (not puted_heroes_to_work):
             raise ValueError("Unable to put heroes to work")
 
-    def reset_map(self):
-        self.bot_log.info("Redistributing heroes")
-        self.await_and_click("./images/back-to-menu-button.png", await_time=self._small_time, enableLog=False, tag="BACK")
-        self.await_and_click("./images/start-pve-button.png", await_time=self._small_time, enableLog=False, tag="PVE")
-
     def await_for_new_map(self, await_time, map_expected_time_finish):
         self.bot_log.info(f"Awaiting {str(int(await_time / 60))}m for new map")
-        time_start = time.perf_counter()
-        
-        if (self.await_and_click("./images/ok-button.png", await_time=self._big_time, tag="OK")):
-            raise ValueError("Lost connection")
 
-        while (self.is_time_out(time_start, await_time) == False):
+        map_time_start = time.perf_counter()
+        is_map_time_finish = False
+
+        self.check_connection()
+
+        while (is_map_time_finish == False):
             map_time_spent = self.time_spent(self._map_time_start)
+            is_map_time_finish = self.is_time_out(map_time_start, await_time)
 
             if (self.await_and_click("./images/new-map-button.png", await_time=self._medium_time, tag="NEW") != None):
                 self.bot_log.info(f"Map time spent {str(int(map_time_spent / 60))}m")
                 self._map_time_start = time.perf_counter()
 
+                if (self.await_and_click("./images/ok-button.png", await_time=self._big_time, tag="OK")):
+                    raise ValueError("Lost connection")
+
+            if (self.time_spent(map_time_start) % 260 > 250):
+                self.check_connection()
+                
+            if (map_time_spent > map_expected_time_finish and self.time_spent(map_time_start) % 70 > 60):
+                self.reset_heroes()
+            
+            if (self.time_spent(map_time_start) < 300 or is_map_time_finish):
                 if (self.await_and_click("./images/ok-button.png", await_time=self._small_time, tag="OK")):
-                    self.bot_log.error("Lost connection")
-                    return
+                    raise ValueError("Lost connection")
 
-                if (self.await_and_click("./images/connect-wallet-button.png", await_time=self._medium_time, tag="CONNECT") != None):
-                    self.bot_log.error("Failed after 3 attempts")
-                    return
-
-            time_interval_refresh = self.time_spent(time_start) % 70
-
-            if(map_time_spent > map_expected_time_finish and time_interval_refresh > 60):
-                if (not self.is_image_present('./images/ok-button.png', enableLog=False, tag="OK")):
-                    self.reset_map()
-
-        if (self.await_and_click("./images/ok-button.png", await_time=self._small_time, tag="OK")):
-            raise ValueError("Lost connection")
+    def check_connection(self):
+        if (not self.is_image_present('./images/ok-button.png', enableLog=False, tag="OK")):
+            self.bot_log.info("Checking connection")
+            self.await_and_click("./images/chest-button.png", await_time=self._small_time, enableLog=False, tag="CHEST")
+            self.await_and_click("./images/close-button.png", await_time=self._small_time, enableLog=False, tag="CLOSE")
+            
+    def reset_heroes(self):
+        if (not self.is_image_present('./images/ok-button.png', enableLog=False, tag="OK")):
+            self.bot_log.info("Reset IA heroes")
+            self.await_and_click("./images/back-to-menu-button.png", await_time=self._small_time, enableLog=False, tag="BACK")
+            self.await_and_click("./images/start-pve-button.png", await_time=self._small_time, enableLog=False, tag="PVE")
 
     # * 1 - login
     # * 2 - Put heroes to work
@@ -423,10 +396,7 @@ class Bot:
             except Exception as e:
                 self.bot_log.error(f"Workflow was broken: {e}")
                 self.refresh()
-                self.await_for_image("./images/connect-wallet-button.png", await_time=self._big_time, tag="CONNECT")
-                self.try_to_login()
-                state = 1
-
+                state = 0
 
 pyautogui.FAILSAFE = False
 bot = Bot()
@@ -435,4 +405,3 @@ while True:
         bot.run()
     except Exception as e:
         bot = Bot()
-        # bot.bot_log.error(f"Bot breaking error: {e}")
